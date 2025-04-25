@@ -15,14 +15,14 @@ jobs:
         id: get_sha
         run: echo "SHA=${{ github.event.client_payload.sha }}" >> $GITHUB_ENV  # Extraemos el SHA del payload
 
-      - name: SSH to EC2 and update container
+      - name: SSH to OCI and update container
         uses: appleboy/ssh-action@v1
         with:
-          host: ${{ secrets.EC2_HOST_DEV }}
-          username: ${{ secrets.EC2_USER_DEV }}
-          key: ${{ secrets.EC2_SSH_KEY_DEV }}
+          host: ${{ secrets.VM_HOST_DEV }}
+          username: ${{ secrets.VM_USER_DEV }}
+          key: ${{ secrets.VM_KEY_DEV }}
           script: |
-            cd /home/ec2-user/claimhere
+            cd /home/ubuntu/back-legalcode
             docker pull ghcr.io/jhoel2002/cutomer-back:${{ env.SHA }} # Descarga la última imagen
             docker images
             export TAG=${{ env.SHA }} 
