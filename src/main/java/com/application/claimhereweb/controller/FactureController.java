@@ -1,14 +1,11 @@
 package com.application.claimhereweb.controller;
 
+import net.sf.jasperreports.engine.JRException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.*;
+import org.springframework.web.bind.annotation.*;
+
+import java.io.FileNotFoundException;
 
 import com.application.claimhereweb.service.IFactureService;
 import com.application.claimhereweb.service.dto.ResponseFactureDTO;
@@ -30,5 +27,25 @@ public class FactureController {
             @PathVariable Long id_customer) {
         ResponseFactureDTO response = factureService.saveFacture(value_case, id_customer);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/export-pdf")
+    public ResponseEntity<byte[]> exportPdf() throws JRException, FileNotFoundException {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("Facture", "Facture.pdf");
+        return ResponseEntity.ok().headers(headers).body(factureService.exportPdf());
+    }
+
+    @GetMapping("/export-xls")
+    public ResponseEntity<byte[]> exportXls() throws JRException, FileNotFoundException {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; charset=UTF-8");
+        var contentDisposition = ContentDisposition.builder("attachment")
+                .filename("petsReport" + ".xls").build();
+        headers.setContentDisposition(contentDisposition);
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(factureService.exportXls());
     }
 }

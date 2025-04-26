@@ -1,5 +1,6 @@
 package com.application.claimhereweb.service.impl;
 
+import java.io.FileNotFoundException;
 import java.util.Optional;
 
 import org.modelmapper.ModelMapper;
@@ -20,6 +21,9 @@ import com.application.claimhereweb.model.repository.FactureRepository;
 import com.application.claimhereweb.service.IFactureService;
 import com.application.claimhereweb.service.dto.ResponseFactureDTO;
 import com.application.claimhereweb.service.dto.SaveFactureDTO;
+import com.application.claimhereweb.utils.ReportGenerator;
+
+import net.sf.jasperreports.engine.JRException;
 
 @Service
 public class FactureServiceImpl implements IFactureService {
@@ -32,18 +36,11 @@ public class FactureServiceImpl implements IFactureService {
     @Autowired
     private CustomerRepository customerRepository;
 
-    /*
-     * @Autowired
-     * private LegalCaseRepository legalCaseRepository;
-     */
-
     @Autowired
     private ModelMapper modelMapper;
 
-    /*
-     * @Autowired
-     * private RoleRepository roleRepository;
-     */
+    @Autowired
+    private ReportGenerator reportGenerator;
 
     @Override
     @Transactional
@@ -89,8 +86,19 @@ public class FactureServiceImpl implements IFactureService {
 
     public ResponseFactureDTO responseFacture(Facture factureModel) {
         ResponseFactureDTO response = modelMapper.map(factureModel, ResponseFactureDTO.class);
+
         response.setCustomer(factureModel.getCustomer().getUser().getName());
         logger.info("Facture guardado con ID: {}", factureModel.getId());
         return response;
+    }
+
+    @Override
+    public byte[] exportPdf() throws JRException, FileNotFoundException {
+        return reportGenerator.exportToPdf(factureRepository.findAll());
+    }
+
+    @Override
+    public byte[] exportXls() throws JRException, FileNotFoundException {
+        return reportGenerator.exportToXls(factureRepository.findAll());
     }
 }
