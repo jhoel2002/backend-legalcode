@@ -4,8 +4,12 @@ import java.sql.Timestamp;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.application.claimhereweb.model.entity.enumEntity.StatusPayment;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -34,8 +38,8 @@ public class Facture {
     @CreationTimestamp
     private Timestamp issue_date;
 
-    @Column(name = "status_payment", nullable = false)
-    private String status_payment;
+    @Enumerated(EnumType.STRING)
+    private StatusPayment status_payment = StatusPayment.PENDIENTE;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_legal_case", referencedColumnName = "id", nullable = false)
