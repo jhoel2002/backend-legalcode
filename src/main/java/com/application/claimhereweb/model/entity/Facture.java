@@ -41,15 +41,15 @@ public class Facture {
     @Enumerated(EnumType.STRING)
     private StatusPayment status_payment = StatusPayment.PENDIENTE;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_legal_case", referencedColumnName = "id", nullable = false)
     private LegalCase legal_case;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_users", referencedColumnName = "id", nullable = true)
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "id_customer", referencedColumnName = "id", nullable = true)
     private Customer customer;
 }

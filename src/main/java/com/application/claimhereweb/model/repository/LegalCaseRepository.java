@@ -8,6 +8,7 @@ import com.application.claimhereweb.model.entity.LegalCase;
 
 public interface LegalCaseRepository extends JpaRepository<LegalCase, Long> {
 
+    // @Query("SELECT c.user.name FROM Customer c WHERE c.id = :id")
     @Query("SELECT lc.title FROM LegalCase lc WHERE lc.id = :id")
     String findTitleById(@Param("id") Long id);
 }

@@ -7,7 +7,7 @@ public class SaveFactureDTO {
 
     private Double amount;
     private String description;
-    private Long legalCaseId;
-    private Long userId;
+    private Long legalCase;
+    private Long user;
     // private Long customerId; Se traera el customer del legalCaseId
 }

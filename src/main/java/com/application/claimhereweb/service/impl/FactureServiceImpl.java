@@ -1,7 +1,5 @@
 package com.application.claimhereweb.service.impl;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Optional;
 
 import org.modelmapper.ModelMapper;
@@ -15,13 +13,10 @@ import com.application.claimhereweb.exceptions.ResourceNotFoundException;
 import com.application.claimhereweb.model.entity.Customer;
 import com.application.claimhereweb.model.entity.Facture;
 import com.application.claimhereweb.model.entity.LegalCase;
-import com.application.claimhereweb.model.entity.Role;
 import com.application.claimhereweb.model.entity.User;
 import com.application.claimhereweb.model.entity.enumEntity.StatusPayment;
 import com.application.claimhereweb.model.repository.CustomerRepository;
 import com.application.claimhereweb.model.repository.FactureRepository;
-import com.application.claimhereweb.model.repository.LegalCaseRepository;
-import com.application.claimhereweb.model.repository.RoleRepository;
 import com.application.claimhereweb.service.IFactureService;
 import com.application.claimhereweb.service.dto.ResponseFactureDTO;
 import com.application.claimhereweb.service.dto.SaveFactureDTO;
@@ -37,29 +32,23 @@ public class FactureServiceImpl implements IFactureService {
     @Autowired
     private CustomerRepository customerRepository;
 
-    @Autowired
-    private LegalCaseRepository legalCaseRepository;
+    /*
+     * @Autowired
+     * private LegalCaseRepository legalCaseRepository;
+     */
 
     @Autowired
     private ModelMapper modelMapper;
 
-    @Autowired
-    private RoleRepository roleRepository;
+    /*
+     * @Autowired
+     * private RoleRepository roleRepository;
+     */
 
     @Override
     @Transactional
     public ResponseFactureDTO saveFacture(SaveFactureDTO value_case, Long id_customer) {
-        logger.info("Registrando la factura del caso: {}", value_case.getLegalCaseId());
-
-        String title = Optional.ofNullable(legalCaseRepository.findTitleById(value_case.getLegalCaseId()))
-                .orElseThrow(() -> {
-                    return new ResourceNotFoundException("Caso Legal no encontrado");
-                });
-
-        String rolUser = Optional.ofNullable(roleRepository.findRoleNameByUserId(value_case.getUserId()))
-                .orElseThrow(() -> {
-                    return new ResourceNotFoundException("Usuario no encontrado");
-                });
+        logger.info("Registrando la factura del caso: {}", value_case.getLegalCase());
 
         String customerName = Optional.ofNullable(customerRepository.findCustomerUserNameById(id_customer))
                 .orElseThrow(() -> {
@@ -70,19 +59,13 @@ public class FactureServiceImpl implements IFactureService {
 
         facture.setLegal_case(new LegalCase() {
             {
-                setId(value_case.getLegalCaseId());
-                setTitle(title);
+                setId(value_case.getLegalCase());
             }
         });
 
         facture.setUser(new User() {
             {
-                setId(value_case.getUserId());
-                setRoles(new HashSet<>(Arrays.asList(new Role() {
-                    {
-                        setName(rolUser);
-                    }
-                })));
+                setId(value_case.getUser());
             }
         });
 
@@ -104,12 +87,10 @@ public class FactureServiceImpl implements IFactureService {
         return responseFacture(savedFacture);
     }
 
-    public ResponseFactureDTO responseFacture(Facture caseModel) {
-        ResponseFactureDTO response = modelMapper.map(caseModel, ResponseFactureDTO.class);
-        response.setLegal_case(caseModel.getLegal_case().getTitle());
-        response.setUser(caseModel.getUser().getRoles().getClass().getName());
-        response.setCustomer(caseModel.getCustomer().getUser().getName());
-        logger.info("Facture guardado con ID: {}", caseModel.getId());
+    public ResponseFactureDTO responseFacture(Facture factureModel) {
+        ResponseFactureDTO response = modelMapper.map(factureModel, ResponseFactureDTO.class);
+        response.setCustomer(factureModel.getCustomer().getUser().getName());
+        logger.info("Facture guardado con ID: {}", factureModel.getId());
         return response;
     }
 }
