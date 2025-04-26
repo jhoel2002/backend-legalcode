@@ -23,11 +23,6 @@ jobs:
         with:
           distribution: 'temurin' # See 'Supported distributions' for available options
           java-version: '21'
-      - name: Set Environment Variables
-        run: |
-          echo "DB_URL=${{ secrets.DB_URL_DEVELOP }}" >> $GITHUB_ENV
-          echo "DB_USER=${{ secrets.DB_USER_DEVELOP }}" >> $GITHUB_ENV
-          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD_DEVELOP }}" >> $GITHUB_ENV
 
       - name: Cache Maven dependencies
         uses: actions/cache@v4.2.3
@@ -38,6 +33,10 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: build with maven
+        env:
+          DB_URL: ${{ secrets.DB_URL_DEVELOP }}
+          DB_USER: ${{ secrets.DB_USER_DEVELOP }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD_DEVELOP }}
         run: |
           mvn clean test -Pdev package
           echo "build with maven"
