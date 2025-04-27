@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class ClaimherewebApplication{
 
 	public static void main(String[] args) {
+		System.setProperty("java.awt.headless", "true");
 		TimeZone.setDefault(TimeZone.getTimeZone("America/Lima"));
 		SpringApplication.run(ClaimherewebApplication.class, args);
 	}

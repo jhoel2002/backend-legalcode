@@ -13,7 +13,7 @@
 
 	"remoteUser": "root",
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "mvn clean package -DskipTests=true",
+	"postCreateCommand": "mvn clean package -DskipTests=true && apt-get update && apt-get install -y fontconfig fonts-dejavu-core",	
 
 	  
 	"customizations": {
@@ -28,5 +28,5 @@
 			"Postman.postman-for-vscode"
 		  ]
 		}
-	  },
+	  }
 }

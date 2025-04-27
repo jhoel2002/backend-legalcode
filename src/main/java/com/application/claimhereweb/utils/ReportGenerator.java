@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 
 import com.application.claimhereweb.model.entity.Facture;
+import com.application.claimhereweb.service.dto.ResponseFactureDTO;
 
 import net.sf.jasperreports.engine.JREmptyDataSource;
 import net.sf.jasperreports.engine.JRException;
@@ -24,11 +25,11 @@ import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
 
 @Service
 public class ReportGenerator {
-    public byte[] exportToPdf(List<Facture> list) throws JRException, FileNotFoundException {
+    public byte[] exportToPdf(List<ResponseFactureDTO> list) throws JRException, FileNotFoundException {
         return JasperExportManager.exportReportToPdf(getReport(list));
     }
 
-    public byte[] exportToXls(List<Facture> list) throws JRException, FileNotFoundException {
+    public byte[] exportToXls(List<ResponseFactureDTO> list) throws JRException, FileNotFoundException {
         ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
         SimpleOutputStreamExporterOutput output = new SimpleOutputStreamExporterOutput(byteArray);
         JRXlsExporter exporter = new JRXlsExporter();
@@ -39,12 +40,12 @@ public class ReportGenerator {
         return byteArray.toByteArray();
     }
 
-    private JasperPrint getReport(List<Facture> list) throws FileNotFoundException, JRException {
+    private JasperPrint getReport(List<ResponseFactureDTO> list) throws FileNotFoundException, JRException {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("petsData", new JRBeanCollectionDataSource(list));
 
         JasperPrint report = JasperFillManager.fillReport(JasperCompileManager.compileReport(
-                ResourceUtils.getFile("classpath:Facture.jrxml")
+                ResourceUtils.getFile("src/main/resources/reports/Facture.jrxml")
                         .getAbsolutePath()),
                 params, new JREmptyDataSource());
 

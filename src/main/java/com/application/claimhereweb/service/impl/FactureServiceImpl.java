@@ -1,7 +1,9 @@
 package com.application.claimhereweb.service.impl;
 
 import java.io.FileNotFoundException;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -86,7 +88,6 @@ public class FactureServiceImpl implements IFactureService {
 
     public ResponseFactureDTO responseFacture(Facture factureModel) {
         ResponseFactureDTO response = modelMapper.map(factureModel, ResponseFactureDTO.class);
-
         response.setCustomer(factureModel.getCustomer().getUser().getName());
         logger.info("Facture guardado con ID: {}", factureModel.getId());
         return response;
@@ -94,11 +95,20 @@ public class FactureServiceImpl implements IFactureService {
 
     @Override
     public byte[] exportPdf() throws JRException, FileNotFoundException {
-        return reportGenerator.exportToPdf(factureRepository.findAll());
+        List<ResponseFactureDTO> response = factureRepository.findAll()
+            .stream()
+            .map(this::responseFacture)
+            .collect(Collectors.toList());
+        
+        return reportGenerator.exportToPdf(response);
     }
 
     @Override
     public byte[] exportXls() throws JRException, FileNotFoundException {
-        return reportGenerator.exportToXls(factureRepository.findAll());
+        List<ResponseFactureDTO> response = factureRepository.findAll()
+            .stream()
+            .map(this::responseFacture)
+            .collect(Collectors.toList());
+        return reportGenerator.exportToXls(response);
     }
 }
