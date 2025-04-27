@@ -33,6 +33,7 @@ public class CaseTeamUser {
     @JoinColumn(name = "id_users", referencedColumnName = "id", nullable = false)
     private User user;
 
+    @Column(name = "role_case", nullable = false)
     @Enumerated(EnumType.STRING)
     private CaseRole role_case;
 

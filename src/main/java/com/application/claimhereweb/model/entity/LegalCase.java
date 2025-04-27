@@ -34,9 +34,11 @@ public class LegalCase {
     @Column(name = "description", nullable = false)
     private String description;
 
+    @Column(name = "status_case", nullable = false)
     @Enumerated(EnumType.STRING)
     private CaseStatus status_case;
 
+    @Column(name = "type_case", nullable = false)
     @Enumerated(EnumType.STRING)
     private CaseType type_case;
 

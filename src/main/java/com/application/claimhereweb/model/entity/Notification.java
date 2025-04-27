@@ -32,6 +32,7 @@ public class Notification {
     @Column(name = "read_message", nullable = false)
     private boolean read_message = false;
 
+    @Column(name = "type_message", nullable = false)
     @Enumerated(EnumType.STRING)
     private MessageType type_message;
 
