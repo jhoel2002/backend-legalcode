@@ -2,6 +2,7 @@ package com.application.claimhereweb.utils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,10 +45,17 @@ public class ReportGenerator {
         Map<String, Object> params = new HashMap<String, Object>();
         params.put("petsData", new JRBeanCollectionDataSource(list));
 
-        JasperPrint report = JasperFillManager.fillReport(JasperCompileManager.compileReport(
-                ResourceUtils.getFile("src/main/resources/reports/Facture.jrxml")
-                        .getAbsolutePath()),
-                params, new JREmptyDataSource());
+        // Cargar el archivo .jrxml desde el classpath
+        InputStream jrxmlInputStream = getClass().getClassLoader().getResourceAsStream("reports/Facture.jrxml");
+        if (jrxmlInputStream == null) {
+            throw new FileNotFoundException("El archivo Facture.jrxml no se encuentra en el classpath.");
+        }
+
+        // Compilar el reporte utilizando el archivo .jrxml cargado
+        JasperPrint report = JasperFillManager.fillReport(
+                JasperCompileManager.compileReport(jrxmlInputStream),
+                params, new JREmptyDataSource()
+        );
 
         return report;
     }
