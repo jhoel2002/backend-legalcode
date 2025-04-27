@@ -34,6 +34,7 @@ public class Document {
     @Column(name = "url_document", nullable = false)
     private String url_document;
 
+    @Column(name = "type_document", nullable = false)
     @Enumerated(EnumType.STRING)
     private DocumentType type_document;
 

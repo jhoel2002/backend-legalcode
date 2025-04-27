@@ -38,18 +38,19 @@ public class Facture {
     @CreationTimestamp
     private Timestamp issue_date;
 
+    @Column(name = "status_payment", nullable = false)
     @Enumerated(EnumType.STRING)
     private StatusPayment status_payment = StatusPayment.PENDIENTE;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_legal_case", referencedColumnName = "id", nullable = false)
     private LegalCase legal_case;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_users", referencedColumnName = "id", nullable = true)
     private User user;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_customer", referencedColumnName = "id", nullable = true)
     private Customer customer;
 }

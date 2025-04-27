@@ -42,6 +42,7 @@ public class Agenda {
     @CreationTimestamp
     private Timestamp end_date;
 
+    @Column(name = "type_event", nullable = false)
     @Enumerated(EnumType.STRING)
     private EventType type_event;
 
