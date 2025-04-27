@@ -1,6 +1,9 @@
 # Usa una imagen base con JRE 21 en Alpine
 FROM eclipse-temurin:21-alpine
 
+# Instala fontconfig y las fuentes Dejavu necesarias
+RUN apk add --no-cache fontconfig ttf-dejavu
+
 # Create a new group with specific uid and non-root user called "admin"
 # Be sure that group id are not present on host. if already exist change by arbitrary other uid
 RUN addgroup -g 1028 devopsc \
