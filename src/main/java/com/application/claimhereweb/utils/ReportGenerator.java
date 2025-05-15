@@ -8,9 +8,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.stereotype.Service;
-import org.springframework.util.ResourceUtils;
+//import org.springframework.util.ResourceUtils;
 
-import com.application.claimhereweb.model.entity.Facture;
+//import com.application.claimhereweb.model.entity.Facture;
 import com.application.claimhereweb.service.dto.ResponseFactureDTO;
 
 import net.sf.jasperreports.engine.JREmptyDataSource;
@@ -54,8 +54,7 @@ public class ReportGenerator {
         // Compilar el reporte utilizando el archivo .jrxml cargado
         JasperPrint report = JasperFillManager.fillReport(
                 JasperCompileManager.compileReport(jrxmlInputStream),
-                params, new JREmptyDataSource()
-        );
+                params, new JREmptyDataSource());
 
         return report;
     }

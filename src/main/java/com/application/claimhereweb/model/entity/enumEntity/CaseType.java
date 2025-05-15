@@ -1,13 +1,13 @@
 package com.application.claimhereweb.model.entity.enumEntity;
 
 public enum CaseType {
-    Civil,
-    Criminal,
-    Penal,
-    Labor,
-    Familiar,
-    Inmobiliario,
-    Commercial,
-    International,
-    Administrativo,
+    CIVIL,
+    CRIMINAL,
+    PENAL,
+    LABOR,
+    FAMILY,
+    REAL_ESTATE,
+    COMMERCIAL,
+    INTERNATIONAL,
+    ADMINISTRATIVE
 }

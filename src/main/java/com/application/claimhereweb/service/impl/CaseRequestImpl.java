@@ -58,6 +58,7 @@ public class CaseRequestImpl implements ICaseRequestService {
         });
 
         CaseRequest saveCaseRequest = caseRequestRepository.save(caseRequest);
+        // status_request por default es PENDING esta definido en la entidad
         return responseCaseRequest(saveCaseRequest);
     }
 
