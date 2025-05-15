@@ -40,14 +40,14 @@ public class UserServiceImpl implements IUserService {
     @Transactional(readOnly = true)
     public List<ResponseUserDTO> findAll() {
         return userRepository.findAll().stream()
-            .map(this::responseUser)
-            .collect(Collectors.toList());
+                .map(this::responseUser)
+                .collect(Collectors.toList());
     }
 
     @Transactional
     @Override
     public ResponseUserDTO saveByAdmin(SaveUserDTO user) {
-        User saved = prepareUser(user, RoleName.ROLE_ADMIN);
+        User saved = prepareUser(user, RoleName.ROLE_ADMINISTRATOR);
         return responseUser(saved);
     }
 
@@ -62,7 +62,7 @@ public class UserServiceImpl implements IUserService {
         User userModel = modelMapper.map(user, User.class);
         Set<Role> roles = new HashSet<>();
         Optional<Role> optionalRoleMod = roleRepository.findByName(roleName.name());
-                optionalRoleMod.ifPresent(roles::add);
+        optionalRoleMod.ifPresent(roles::add);
         userModel.setRoles(roles);
         userModel.setPassword(passwordEncoder.encode(user.getPassword()));
         User savedUser = userRepository.save(userModel);

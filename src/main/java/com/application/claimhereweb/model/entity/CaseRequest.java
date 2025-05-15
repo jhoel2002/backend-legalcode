@@ -39,7 +39,7 @@ public class CaseRequest {
     private CaseType type_case;
 
     @Enumerated(EnumType.STRING)
-    private CaseStatusRequest status_request = CaseStatusRequest.PENDIENTE;
+    private CaseStatusRequest status_request = CaseStatusRequest.PENDING;
 
     @Column(name = "application_date", nullable = false)
     @CreationTimestamp
