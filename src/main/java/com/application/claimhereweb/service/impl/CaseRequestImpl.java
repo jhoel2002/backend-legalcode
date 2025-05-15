@@ -6,17 +6,20 @@ import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.application.claimhereweb.exceptions.ResourceNotFoundException;
 import com.application.claimhereweb.model.entity.CaseRequest;
 import com.application.claimhereweb.model.entity.Customer;
 import com.application.claimhereweb.model.entity.User;
+import com.application.claimhereweb.model.entity.enumEntity.CaseStatusRequest;
 import com.application.claimhereweb.model.repository.CaseRequestRepository;
 import com.application.claimhereweb.model.repository.CustomerRepository;
 import com.application.claimhereweb.service.ICaseRequestService;
 import com.application.claimhereweb.service.dto.ResponseCaseRequestDTO;
 import com.application.claimhereweb.service.dto.SaveCaseRequestDTO;
+import com.application.claimhereweb.service.dto.UpdateCaseRequestDTO;
 
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +40,32 @@ public class CaseRequestImpl implements ICaseRequestService {
     @Override
 
     @Transactional
+    public ResponseEntity<String> updateCaseRequest(UpdateCaseRequestDTO dto) {
+        logger.info("Actualizando estado de la solicitud de caso legal");
+
+        Optional<CaseRequest> optional = caseRequestRepository.findById(dto.getId());
+        if (optional.isEmpty()) {
+            throw new ResourceNotFoundException("Solicitud de Caso Legal no encontrada :c");
+        }
+
+        CaseRequest caseRequest = optional.get();
+
+        String newStatus = dto.getStatus_request();
+        CaseStatusRequest caseStatusRequest;
+        try {
+            caseStatusRequest = CaseStatusRequest.valueOf(newStatus.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new ResourceNotFoundException("El estado ingresado en 'status_request' es inválido: " + newStatus);
+        }
+
+        caseRequest.setStatus_request(caseStatusRequest);
+        caseRequestRepository.save(caseRequest);
+
+        String mensaje = "Estado actualizado correctamente. ID: " + caseRequest.getId() +
+                ", nuevo estado: " + caseStatusRequest.name();
+        return ResponseEntity.ok(mensaje);
+    }
+
     public ResponseCaseRequestDTO saveCaseRequest(SaveCaseRequestDTO saveCaseDTO, Long id_customer) {
 
         logger.info("Registrando solicitado de registro de caso: {}", saveCaseDTO.getTitle());
@@ -58,7 +87,6 @@ public class CaseRequestImpl implements ICaseRequestService {
         });
 
         CaseRequest saveCaseRequest = caseRequestRepository.save(caseRequest);
-        // status_request por default es PENDING esta definido en la entidad
         return responseCaseRequest(saveCaseRequest);
     }
 

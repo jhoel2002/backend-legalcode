@@ -1,8 +1,8 @@
 package com.application.claimhereweb.model.entity.enumEntity;
 
 public enum StatusPayment {
-    OTROS,
-    PENDIENTE,
-    PAGADO,
-    VENCIDO
+    OTHER,
+    PENDING,
+    PAID,
+    DUE
 }

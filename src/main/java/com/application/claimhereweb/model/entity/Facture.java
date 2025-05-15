@@ -40,7 +40,7 @@ public class Facture {
 
     @Column(name = "status_payment", nullable = false)
     @Enumerated(EnumType.STRING)
-    private StatusPayment status_payment = StatusPayment.PENDIENTE;
+    private StatusPayment status_payment = StatusPayment.PENDING;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_legal_case", referencedColumnName = "id", nullable = false)

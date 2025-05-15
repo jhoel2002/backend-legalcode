@@ -79,7 +79,7 @@ public class FactureServiceImpl implements IFactureService {
             }
         });
 
-        facture.setStatus_payment(StatusPayment.PENDIENTE);
+        facture.setStatus_payment(StatusPayment.PENDING);
 
         Facture savedFacture = factureRepository.save(facture);
 
@@ -96,19 +96,19 @@ public class FactureServiceImpl implements IFactureService {
     @Override
     public byte[] exportPdf() throws JRException, FileNotFoundException {
         List<ResponseFactureDTO> response = factureRepository.findAll()
-            .stream()
-            .map(this::responseFacture)
-            .collect(Collectors.toList());
-        
+                .stream()
+                .map(this::responseFacture)
+                .collect(Collectors.toList());
+
         return reportGenerator.exportToPdf(response);
     }
 
     @Override
     public byte[] exportXls() throws JRException, FileNotFoundException {
         List<ResponseFactureDTO> response = factureRepository.findAll()
-            .stream()
-            .map(this::responseFacture)
-            .collect(Collectors.toList());
+                .stream()
+                .map(this::responseFacture)
+                .collect(Collectors.toList());
         return reportGenerator.exportToXls(response);
     }
 }

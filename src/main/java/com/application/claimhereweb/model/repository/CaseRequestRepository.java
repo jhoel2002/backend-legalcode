@@ -12,4 +12,7 @@ public interface CaseRequestRepository extends JpaRepository<CaseRequest, Long> 
 
     @Query("SELECT cr FROM CaseRequest cr WHERE cr.id = :id")
     Optional<CaseRequest> findCaseRequestById(@Param("id") Long id);
+
+    @Query("SELECT COUNT(cr) > 0 FROM CaseRequest cr WHERE cr.id = :id")
+    boolean existsByIdCustom(@Param("id") Long id);
 }
