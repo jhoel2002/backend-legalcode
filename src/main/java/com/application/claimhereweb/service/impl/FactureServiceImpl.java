@@ -30,7 +30,7 @@ import net.sf.jasperreports.engine.JRException;
 @Service
 public class FactureServiceImpl implements IFactureService {
 
-    private static final Logger logger = LoggerFactory.getLogger(CaseServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(FactureServiceImpl.class);
 
     @Autowired
     private FactureRepository factureRepository;

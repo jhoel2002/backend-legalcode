@@ -26,7 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class CaseRequestImpl implements ICaseRequestService {
 
-    private static final Logger logger = LoggerFactory.getLogger(CaseServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(CaseRequestImpl.class);
 
     @Autowired
     CaseRequestRepository caseRequestRepository;
