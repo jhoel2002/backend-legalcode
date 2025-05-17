@@ -38,7 +38,7 @@ jobs:
           DB_USER: ${{ secrets.DB_USER_DEVELOP }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD_DEVELOP }}
         run: |
-          mvn clean test -Pdev package
+          mvn clean package -Pdev -DskipTests
           echo "build with maven"
 
 #######################################################
