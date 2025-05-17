@@ -9,10 +9,8 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import org.springframework.context.annotation.Profile;
 
 @Configuration
-@Profile("!test")
 public class AwsConfig {
 
     @Value("${aws.access_key_id}")
