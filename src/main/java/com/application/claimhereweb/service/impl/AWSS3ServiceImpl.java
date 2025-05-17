@@ -33,14 +33,21 @@ public class AWSS3ServiceImpl implements AWSS3Service {
     private String bucketName;
 
     @Override
-    public void uploadFile(MultipartFile file) {
+    public void uploadFile(MultipartFile file, String nombreCarpeta) {
 
         File mainFile = new File(file.getOriginalFilename());
         try (FileOutputStream stream = new FileOutputStream(mainFile)) {
             stream.write(file.getBytes());
+
             String newFileName = System.currentTimeMillis() + "_" + mainFile.getName();
-            logger.info("Subiendo archivo con el nombre ... " + newFileName);
-            PutObjectRequest request = new PutObjectRequest(bucketName, newFileName, mainFile);
+            // esto evitara que los archivos se sobre escriban
+
+            String s3Key = nombreCarpeta + "/" + newFileName;
+            // nombre de carpeta + el nombre del archivo
+
+            logger.info("Subiendo archivo con el nombre ... " + s3Key);
+
+            PutObjectRequest request = new PutObjectRequest(bucketName, s3Key, mainFile);
             amazonS3.putObject(request);
 
         } catch (IOException e) {
@@ -59,8 +66,11 @@ public class AWSS3ServiceImpl implements AWSS3Service {
     }
 
     @Override
-    public InputStream downloadFile(String key) {
-        S3Object object = amazonS3.getObject(bucketName, key);
+    public InputStream downloadFile(String nombreCarpeta, String key) {
+        // Construir la clave con carpeta y nombre del archivo
+        String fullKey = (nombreCarpeta.endsWith("/") ? nombreCarpeta : nombreCarpeta + "/") + key;
+
+        S3Object object = amazonS3.getObject(bucketName, fullKey);
         return object.getObjectContent();
     }
 }
