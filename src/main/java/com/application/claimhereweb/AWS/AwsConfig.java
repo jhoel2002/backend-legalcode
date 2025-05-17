@@ -11,6 +11,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
 @Configuration
+@Profile("!test")
 public class AwsConfig {
 
     @Value("${aws.access_key_id}")
