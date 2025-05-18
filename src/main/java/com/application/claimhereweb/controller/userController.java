@@ -35,9 +35,6 @@ public class userController {
     @PostMapping("/register/{role}")
     //@PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> create(@Valid @RequestBody SaveUserDTO user, @PathVariable RoleName role) {
-        // if (result.hasFieldErrors()) {
-        //     return validation(result);
-        // }
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.save(user,role));
     }
     //@PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -45,13 +42,4 @@ public class userController {
     public ResponseEntity<?> createByAdmin(@Valid @RequestBody SaveUserDTO user) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.saveByAdmin(user));
     }
-
-    // private ResponseEntity<?> validation(BindingResult result) {
-    //     Map<String, String> errors = new HashMap<>();
-
-    //     result.getFieldErrors().forEach(err -> {
-    //         errors.put(err.getField(), "El campo " + err.getField() + " " + err.getDefaultMessage());
-    //     });
-    //     return ResponseEntity.badRequest().body(errors);
-    // }
 }
