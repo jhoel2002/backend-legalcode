@@ -135,6 +135,8 @@ jobs:
             DB_URL=${{ secrets.DB_URL_DEVELOP }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD_DEVELOP }}
             DB_USER=${{ secrets.DB_USER_DEVELOP }}
+            AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
           push : true # Push image to registry, false by deafult.
           tags : ghcr.io/${{ github.repository_owner}}/cutomer-back:${{ github.sha }} # The image ful name, include repository, user, image name and tag 
 

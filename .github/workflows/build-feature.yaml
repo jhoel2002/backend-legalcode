@@ -37,8 +37,10 @@ jobs:
           DB_URL: ${{ secrets.DB_URL_DEVELOP }}
           DB_USER: ${{ secrets.DB_USER_DEVELOP }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD_DEVELOP }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          mvn clean package -Pdev -DskipTests
+          mvn clean test -Pdev package
           echo "build with maven"
 
 #######################################################
