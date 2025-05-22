@@ -1,6 +1,6 @@
 package com.application.claimhereweb.controller;
 
-import java.util.List;
+//import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import com.application.claimhereweb.service.ICaseRequestService;
 import com.application.claimhereweb.service.dto.ResponseCaseDTO;
@@ -32,11 +34,15 @@ public class CaseRequestController {
     private ICaseRequestService caseRequestService;
 
     @GetMapping
-    public List<ResponseCaseRequestDTO> listAll(@RequestParam(required = false) String status) {
-        if (status != null && !status.isEmpty()) {
-            return caseRequestService.findAll(status);
+    public Page<ResponseCaseRequestDTO> listAll(
+            @RequestParam(required = false) String status,
+            Pageable pageable) {
+
+        if (status == null || status.equalsIgnoreCase("ALL")) {
+            return caseRequestService.findAll(pageable);
+        } else {
+            return caseRequestService.findAllFilter(status, pageable);
         }
-        return caseRequestService.findAll(null);
     }
 
     @PostMapping("/registerCaseRequest/cust/{id_customer}")

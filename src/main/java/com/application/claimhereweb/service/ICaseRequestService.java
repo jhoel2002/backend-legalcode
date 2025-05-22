@@ -1,6 +1,9 @@
 package com.application.claimhereweb.service;
 
-import java.util.List;
+//import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import com.application.claimhereweb.service.dto.ResponseCaseDTO;
 import com.application.claimhereweb.service.dto.ResponseCaseRequestDTO;
@@ -13,5 +16,7 @@ public interface ICaseRequestService {
 
     public ResponseCaseDTO statusCaseRequest(StatusCaseRequestDTO updateCaseRequestDTO);
 
-    public List<ResponseCaseRequestDTO> findAll(String status);
+    public Page<ResponseCaseRequestDTO> findAllFilter(String status, Pageable pageable);
+
+    public Page<ResponseCaseRequestDTO> findAll(Pageable pageable);
 }
