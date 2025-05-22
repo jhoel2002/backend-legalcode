@@ -1,9 +1,9 @@
 package com.application.claimhereweb.service.impl;
 
 import java.time.format.DateTimeFormatter;
-import java.util.List;
+//import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
+//import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
@@ -29,6 +29,8 @@ import com.application.claimhereweb.service.dto.ResponseCaseRequestDTO;
 //import com.application.claimhereweb.service.dto.ResponseUserDTO;
 import com.application.claimhereweb.service.dto.SaveCaseRequestDTO;
 import com.application.claimhereweb.service.dto.StatusCaseRequestDTO;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,11 +58,16 @@ public class CaseRequestImpl implements ICaseRequestService {
 
     @Transactional
 
-    public List<ResponseCaseRequestDTO> findAll(String status) {
-        return caseRequestRepository.findAllByStatusRequest(CaseStatusRequest.valueOf(status.toUpperCase()))
-                .stream()
-                .map(this::responseFullCaseRequest)
-                .collect(Collectors.toList());
+    public Page<ResponseCaseRequestDTO> findAllFilter(String status, Pageable pageable) {
+        Page<CaseRequest> caseRequests = caseRequestRepository.findAllByStatusRequest(
+                CaseStatusRequest.valueOf(status.toUpperCase()), pageable);
+
+        return caseRequests.map(this::responseFullCaseRequest);
+    }
+
+    public Page<ResponseCaseRequestDTO> findAll(Pageable pageable) {
+        Page<CaseRequest> page = caseRequestRepository.findAll(pageable);
+        return page.map(this::responseFullCaseRequest);
     }
 
     private ResponseCaseRequestDTO responseFullCaseRequest(CaseRequest caseRequest) {
