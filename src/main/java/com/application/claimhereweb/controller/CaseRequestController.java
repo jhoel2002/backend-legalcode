@@ -1,20 +1,25 @@
 package com.application.claimhereweb.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.application.claimhereweb.service.ICaseRequestService;
+import com.application.claimhereweb.service.dto.ResponseCaseDTO;
 import com.application.claimhereweb.service.dto.ResponseCaseRequestDTO;
 import com.application.claimhereweb.service.dto.SaveCaseRequestDTO;
-import com.application.claimhereweb.service.dto.UpdateCaseRequestDTO;
+import com.application.claimhereweb.service.dto.StatusCaseRequestDTO;
 
 import jakarta.validation.Valid;
 
@@ -26,6 +31,14 @@ public class CaseRequestController {
     @Autowired
     private ICaseRequestService caseRequestService;
 
+    @GetMapping
+    public List<ResponseCaseRequestDTO> listAll(@RequestParam(required = false) String status) {
+        if (status != null && !status.isEmpty()) {
+            return caseRequestService.findAll(status);
+        }
+        return caseRequestService.findAll(null);
+    }
+
     @PostMapping("/registerCaseRequest/cust/{id_customer}")
     // @PreAuthorize("hasRole('ROLE_CUSTOMER')")
     public ResponseEntity<?> createCase(@Valid @RequestBody SaveCaseRequestDTO value_case,
@@ -34,9 +47,9 @@ public class CaseRequestController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PutMapping("/updateCaseRequest")
+    @PutMapping("/statusCaseRequest")
     // @PreAuthorize("hasRole('ROLE_CUSTOMER')")
-    public ResponseEntity<String> updateCaseRequest(@Valid @RequestBody UpdateCaseRequestDTO value_case) {
-        return caseRequestService.updateCaseRequest(value_case);
+    public ResponseCaseDTO statusCaseRequest(@Valid @RequestBody StatusCaseRequestDTO value_case) {
+        return caseRequestService.statusCaseRequest(value_case);
     }
 }

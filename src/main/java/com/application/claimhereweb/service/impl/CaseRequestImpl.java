@@ -1,25 +1,34 @@
 package com.application.claimhereweb.service.impl;
 
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+//import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.application.claimhereweb.exceptions.ResourceNotFoundException;
 import com.application.claimhereweb.model.entity.CaseRequest;
 import com.application.claimhereweb.model.entity.Customer;
+import com.application.claimhereweb.model.entity.LegalCase;
 import com.application.claimhereweb.model.entity.User;
+import com.application.claimhereweb.model.entity.enumEntity.CaseStatus;
 import com.application.claimhereweb.model.entity.enumEntity.CaseStatusRequest;
 import com.application.claimhereweb.model.repository.CaseRequestRepository;
 import com.application.claimhereweb.model.repository.CustomerRepository;
+import com.application.claimhereweb.model.repository.LegalCaseRepository;
+import com.application.claimhereweb.model.repository.UserRepository;
 import com.application.claimhereweb.service.ICaseRequestService;
+import com.application.claimhereweb.service.dto.ResponseCaseDTO;
 import com.application.claimhereweb.service.dto.ResponseCaseRequestDTO;
+//import com.application.claimhereweb.service.dto.ResponseUserDTO;
 import com.application.claimhereweb.service.dto.SaveCaseRequestDTO;
-import com.application.claimhereweb.service.dto.UpdateCaseRequestDTO;
+import com.application.claimhereweb.service.dto.StatusCaseRequestDTO;
 
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,35 +44,103 @@ public class CaseRequestImpl implements ICaseRequestService {
     CustomerRepository customerRepository;
 
     @Autowired
+    LegalCaseRepository legalCaseRepository;
+
+    @Autowired
+    UserRepository userRepository;
+
+    @Autowired
     private ModelMapper modelMapper;
 
     @Override
 
     @Transactional
-    public ResponseEntity<String> updateCaseRequest(UpdateCaseRequestDTO dto) {
+
+    public List<ResponseCaseRequestDTO> findAll(String status) {
+        return caseRequestRepository.findAllByStatusRequest(CaseStatusRequest.valueOf(status.toUpperCase()))
+                .stream()
+                .map(this::responseFullCaseRequest)
+                .collect(Collectors.toList());
+    }
+
+    private ResponseCaseRequestDTO responseFullCaseRequest(CaseRequest caseRequest) {
+        ResponseCaseRequestDTO reponseCaseRequestDTO = modelMapper.map(caseRequest, ResponseCaseRequestDTO.class);
+        reponseCaseRequestDTO.setCustomer(caseRequest.getCustomer().getUser().getName());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String formattedDate = caseRequest.getApplication_date().toLocalDateTime().format(formatter);
+        reponseCaseRequestDTO.setApplication_date(formattedDate);
+        return reponseCaseRequestDTO;
+    }
+
+    public ResponseCaseDTO statusCaseRequest(StatusCaseRequestDTO dto) {
         logger.info("Actualizando estado de la solicitud de caso legal");
 
-        Optional<CaseRequest> optional = caseRequestRepository.findById(dto.getId());
-        if (optional.isEmpty()) {
-            throw new ResourceNotFoundException("Solicitud de Caso Legal no encontrada :c");
-        }
-
-        CaseRequest caseRequest = optional.get();
+        CaseRequest caseRequest = caseRequestRepository.findById(dto.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Solicitud de Caso Legal no encontrada :c"));
 
         String newStatus = dto.getStatus_request();
         CaseStatusRequest caseStatusRequest;
+        LegalCase savedCase = null;
+
         try {
             caseStatusRequest = CaseStatusRequest.valueOf(newStatus.toUpperCase());
+
+            caseRequest.setStatus_request(caseStatusRequest);
+            caseRequestRepository.save(caseRequest);
+
+            logger.info("Validando estado de la solicitud :D");
+
+            if (caseStatusRequest == CaseStatusRequest.APPROVED) {
+                logger.info("La solicitud ha sido APROBADA :D");
+
+                LegalCase legalCase = modelMapper.map(dto, LegalCase.class);
+                legalCase.setId(null);
+
+                Long validate_role_lawyer = Optional.ofNullable(
+                        legalCaseRepository.findLawyerIdByUserId(dto.getUser()))
+                        .orElseThrow(
+                                () -> new ResourceNotFoundException("Usuario no tiene asignado el role de abogado :c"));
+
+                legalCase.setUser(new User() {
+                    {
+                        setId(validate_role_lawyer);
+                    }
+                });
+
+                CaseRequest validateCaseRequest = caseRequestRepository.findCaseRequestById(dto.getId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Solicitud de caso no encontrada :c"));
+
+                legalCase.setCase_request(new CaseRequest() {
+                    {
+                        setId(validateCaseRequest.getId());
+                    }
+                });
+
+                legalCase.setTitle(validateCaseRequest.getTitle());
+                legalCase.setDescription(validateCaseRequest.getDescription());
+                legalCase.setType_case(validateCaseRequest.getType_case());
+                legalCase.setCustomer(validateCaseRequest.getCustomer());
+                legalCase.setStatus_case(CaseStatus.NEW);
+
+                savedCase = legalCaseRepository.save(legalCase);
+
+            } else {
+                logger.info("La solicitud ha sido RECHAZADA :c");
+                throw new ResourceNotFoundException("La solicitud no puede continuar porque fue rechazada");
+            }
+
         } catch (IllegalArgumentException e) {
             throw new ResourceNotFoundException("El estado ingresado en 'status_request' es inválido: " + newStatus);
         }
 
-        caseRequest.setStatus_request(caseStatusRequest);
-        caseRequestRepository.save(caseRequest);
+        return responseCase(savedCase);
+    }
 
-        String mensaje = "Estado actualizado correctamente. ID: " + caseRequest.getId() +
-                ", nuevo estado: " + caseStatusRequest.name();
-        return ResponseEntity.ok(mensaje);
+    public ResponseCaseDTO responseCase(LegalCase caseModel) {
+        ResponseCaseDTO response = modelMapper.map(caseModel, ResponseCaseDTO.class);
+        response.setCustomer(caseModel.getCustomer().getUser().getName());
+        logger.info("Caso guardado con ID: {}", caseModel.getId());
+        return response;
     }
 
     public ResponseCaseRequestDTO saveCaseRequest(SaveCaseRequestDTO saveCaseDTO, Long id_customer) {

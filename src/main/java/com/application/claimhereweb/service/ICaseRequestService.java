@@ -1,14 +1,17 @@
 package com.application.claimhereweb.service;
 
-import org.springframework.http.ResponseEntity;
+import java.util.List;
 
+import com.application.claimhereweb.service.dto.ResponseCaseDTO;
 import com.application.claimhereweb.service.dto.ResponseCaseRequestDTO;
 import com.application.claimhereweb.service.dto.SaveCaseRequestDTO;
-import com.application.claimhereweb.service.dto.UpdateCaseRequestDTO;
+import com.application.claimhereweb.service.dto.StatusCaseRequestDTO;
 
 public interface ICaseRequestService {
 
     public ResponseCaseRequestDTO saveCaseRequest(SaveCaseRequestDTO SaveCaseDTO, Long id_customer);
 
-    public ResponseEntity<String> updateCaseRequest(UpdateCaseRequestDTO updateCaseRequestDTO);
+    public ResponseCaseDTO statusCaseRequest(StatusCaseRequestDTO updateCaseRequestDTO);
+
+    public List<ResponseCaseRequestDTO> findAll(String status);
 }
