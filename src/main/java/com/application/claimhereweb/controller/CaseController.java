@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.application.claimhereweb.service.dto.ResponseCaseDTO;
 //import com.application.claimhereweb.model.entity.Case;
 import com.application.claimhereweb.service.dto.SaveCaseDTO;
-import com.application.claimhereweb.service.dto.SaveCaseUserDTO;
+//import com.application.claimhereweb.service.dto.SaveCaseUserDTO;
 import com.application.claimhereweb.service.impl.CaseServiceImpl;
 
 import jakarta.validation.Valid;
@@ -34,10 +34,13 @@ public class CaseController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PostMapping("/registerCase/customer/cust")
-    // @PreAuthorize("hasRole('ROLE_CUSTOMER')")
-    public ResponseEntity<?> createCase(@Valid @RequestBody SaveCaseUserDTO value_case) {
-        ResponseCaseDTO response = caseService.saveCaseUser(value_case);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
+    /*
+     * @PostMapping("/registerCase/customer/cust")
+     * // @PreAuthorize("hasRole('ROLE_CUSTOMER')")
+     * public ResponseEntity<?> createCase(@Valid @RequestBody SaveCaseUserDTO
+     * value_case) {
+     * ResponseCaseDTO response = caseService.saveCaseUser(value_case);
+     * return ResponseEntity.status(HttpStatus.CREATED).body(response);
+     * }
+     */
 }
