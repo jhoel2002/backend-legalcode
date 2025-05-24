@@ -16,6 +16,7 @@ import com.application.claimhereweb.exceptions.ResourceNotFoundException;
 import com.application.claimhereweb.model.entity.CaseRequest;
 import com.application.claimhereweb.model.entity.Customer;
 import com.application.claimhereweb.model.entity.LegalCase;
+import com.application.claimhereweb.model.entity.SimplePageResponse;
 import com.application.claimhereweb.model.entity.User;
 import com.application.claimhereweb.model.entity.enumEntity.CaseStatus;
 import com.application.claimhereweb.model.entity.enumEntity.CaseStatusRequest;
@@ -58,16 +59,18 @@ public class CaseRequestImpl implements ICaseRequestService {
 
     @Transactional
 
-    public Page<ResponseCaseRequestDTO> findAllFilter(String status, Pageable pageable) {
+    public SimplePageResponse<ResponseCaseRequestDTO> findAllFilter(String status, Pageable pageable) {
         Page<CaseRequest> caseRequests = caseRequestRepository.findAllByStatusRequest(
                 CaseStatusRequest.valueOf(status.toUpperCase()), pageable);
 
-        return caseRequests.map(this::responseFullCaseRequest);
+        Page<ResponseCaseRequestDTO> dtoPage = caseRequests.map(this::responseFullCaseRequest);
+        return new SimplePageResponse<>(dtoPage);
     }
 
-    public Page<ResponseCaseRequestDTO> findAll(Pageable pageable) {
+    public SimplePageResponse<ResponseCaseRequestDTO> findAll(Pageable pageable) {
         Page<CaseRequest> page = caseRequestRepository.findAll(pageable);
-        return page.map(this::responseFullCaseRequest);
+        Page<ResponseCaseRequestDTO> dtoPage = page.map(this::responseFullCaseRequest);
+        return new SimplePageResponse<>(dtoPage);
     }
 
     private ResponseCaseRequestDTO responseFullCaseRequest(CaseRequest caseRequest) {
@@ -103,16 +106,20 @@ public class CaseRequestImpl implements ICaseRequestService {
                 LegalCase legalCase = modelMapper.map(dto, LegalCase.class);
                 legalCase.setId(null);
 
-                Long validate_role_lawyer = Optional.ofNullable(
-                        legalCaseRepository.findLawyerIdByUserId(dto.getUser()))
-                        .orElseThrow(
-                                () -> new ResourceNotFoundException("Usuario no tiene asignado el role de abogado :c"));
-
-                legalCase.setUser(new User() {
-                    {
-                        setId(validate_role_lawyer);
-                    }
-                });
+                /*
+                 * Long validate_role_lawyer = Optional.ofNullable(
+                 * legalCaseRepository.findLawyerIdByUserId(dto.getUser()))
+                 * .orElseThrow(
+                 * () -> new
+                 * ResourceNotFoundException("Usuario no tiene asignado el role de abogado :c"))
+                 * ;
+                 * 
+                 * legalCase.setUser(new User() {
+                 * {
+                 * setId(validate_role_lawyer);
+                 * }
+                 * });
+                 */
 
                 CaseRequest validateCaseRequest = caseRequestRepository.findCaseRequestById(dto.getId())
                         .orElseThrow(() -> new ResourceNotFoundException("Solicitud de caso no encontrada :c"));
