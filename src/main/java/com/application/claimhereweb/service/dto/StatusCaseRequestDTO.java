@@ -6,5 +6,5 @@ import lombok.Data;
 public class StatusCaseRequestDTO {
     private Long id;
     private String status_request;
-    private Long user;
+    // private Long user;
 }

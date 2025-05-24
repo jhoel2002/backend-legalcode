@@ -14,9 +14,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.data.domain.Page;
+//import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.application.claimhereweb.model.entity.SimplePageResponse;
 import com.application.claimhereweb.service.ICaseRequestService;
 import com.application.claimhereweb.service.dto.ResponseCaseDTO;
 import com.application.claimhereweb.service.dto.ResponseCaseRequestDTO;
@@ -34,7 +35,7 @@ public class CaseRequestController {
     private ICaseRequestService caseRequestService;
 
     @GetMapping
-    public Page<ResponseCaseRequestDTO> listAll(
+    public SimplePageResponse<ResponseCaseRequestDTO> listAll(
             @RequestParam(required = false) String status,
             Pageable pageable) {
 
