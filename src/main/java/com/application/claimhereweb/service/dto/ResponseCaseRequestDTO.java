@@ -6,6 +6,7 @@ import lombok.Data;
 public class ResponseCaseRequestDTO {
 
     private Long id;
+    private String title;
     private String description;
     private String type_case;
     private String status_request;

@@ -1,5 +1,6 @@
 package com.application.claimhereweb.service.impl;
 
+import java.sql.Timestamp;
 import java.time.format.DateTimeFormatter;
 //import java.util.List;
 import java.util.Optional;
@@ -59,7 +60,53 @@ public class CaseRequestImpl implements ICaseRequestService {
 
     @Transactional
 
-    public SimplePageResponse<ResponseCaseRequestDTO> findAllFilter(String status, Pageable pageable) {
+    // Filtro de busqueda por texto, fecha y estado de la solicitud del caso
+    public SimplePageResponse<ResponseCaseRequestDTO> listFilterFull(
+            String search,
+            Timestamp startDate,
+            Timestamp endDate,
+            String status,
+            Pageable pageable) {
+
+        logger.info("Listando solicitudes de casos. Filtros -> search: {}, startDate: {}, endDate: {}, status: {}",
+                search, startDate, endDate, status);
+
+        Page<CaseRequest> page = caseRequestRepository.findByFilters(
+                search != null && !search.trim().isEmpty() ? search.trim() : null,
+                startDate,
+                endDate,
+                status != null && !status.trim().isEmpty() ? CaseStatusRequest.valueOf(status.toUpperCase()) : null,
+                pageable);
+
+        Page<ResponseCaseRequestDTO> dtoPage = page.map(this::responseFullCaseRequest);
+        return new SimplePageResponse<>(dtoPage);
+    }
+
+    // Filtro de busqueda por texto
+    public SimplePageResponse<ResponseCaseRequestDTO> listFilterSearch(String search, Pageable pageable) {
+        logger.info("Listando solicitudes de casos registrados. Filtro: {}", search);
+
+        Page<CaseRequest> page = (search == null || search.trim().isEmpty())
+                ? caseRequestRepository.findAll(pageable)
+                : caseRequestRepository.searchCaseRequest(search.trim(), pageable);
+
+        Page<ResponseCaseRequestDTO> dtoPage = page.map(this::responseFullCaseRequest);
+        return new SimplePageResponse<>(dtoPage);
+    }
+
+    // Filtro de busqueda por fecha
+    public SimplePageResponse<ResponseCaseRequestDTO> findAllbyApplicationDate(Timestamp startDate, Timestamp endDate,
+            Pageable pageable) {
+        logger.info("Listando clientes registrados entre {} y {}", startDate, endDate);
+
+        Page<CaseRequest> page = caseRequestRepository.findCaseRequestByApplicationDateBetween(startDate, endDate,
+                pageable);
+        Page<ResponseCaseRequestDTO> dtoPage = page.map(this::responseFullCaseRequest);
+        return new SimplePageResponse<>(dtoPage);
+    }
+
+    // Filtro de busqueda por estado de la solicitud
+    public SimplePageResponse<ResponseCaseRequestDTO> listFilterStatus(String status, Pageable pageable) {
         Page<CaseRequest> caseRequests = caseRequestRepository.findAllByStatusRequest(
                 CaseStatusRequest.valueOf(status.toUpperCase()), pageable);
 
@@ -67,6 +114,7 @@ public class CaseRequestImpl implements ICaseRequestService {
         return new SimplePageResponse<>(dtoPage);
     }
 
+    // Listado completo de solicitudes de casos legales
     public SimplePageResponse<ResponseCaseRequestDTO> findAll(Pageable pageable) {
         Page<CaseRequest> page = caseRequestRepository.findAll(pageable);
         Page<ResponseCaseRequestDTO> dtoPage = page.map(this::responseFullCaseRequest);

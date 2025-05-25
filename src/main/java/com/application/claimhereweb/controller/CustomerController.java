@@ -38,7 +38,7 @@ public class CustomerController {
     }
 
     @GetMapping("/listFilterCreationDate")
-    public SimplePageResponse<ResponseCustomerDTO> listAll(
+    public SimplePageResponse<ResponseCustomerDTO> listFilterCreationDate(
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate,
             Pageable pageable) {
