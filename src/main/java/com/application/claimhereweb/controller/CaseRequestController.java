@@ -1,5 +1,10 @@
 package com.application.claimhereweb.controller;
 
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+
 //import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,15 +40,66 @@ public class CaseRequestController {
     private ICaseRequestService caseRequestService;
 
     @GetMapping
-    public SimplePageResponse<ResponseCaseRequestDTO> listAll(
+    public SimplePageResponse<ResponseCaseRequestDTO> listAll(Pageable pageable) {
+        return caseRequestService.findAll(pageable);
+    }
+
+    @GetMapping("/listFilterStatus")
+    public SimplePageResponse<ResponseCaseRequestDTO> listFilterStatus(
             @RequestParam(required = false) String status,
             Pageable pageable) {
+        return caseRequestService.listFilterStatus(status, pageable);
+    }
 
-        if (status == null || status.equalsIgnoreCase("ALL")) {
-            return caseRequestService.findAll(pageable);
-        } else {
-            return caseRequestService.findAllFilter(status, pageable);
+    @GetMapping("/listFilterSearch")
+    public SimplePageResponse<ResponseCaseRequestDTO> listerFilterSearch(
+            @RequestParam(required = false) String search,
+            Pageable pageable) {
+        return caseRequestService.listFilterSearch(search, pageable);
+    }
+
+    @GetMapping("/listFilterApplicationDate")
+    public SimplePageResponse<ResponseCaseRequestDTO> listFilterApplicationDate(
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
+            Pageable pageable) {
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+
+        if (startDate != null && endDate != null) {
+            LocalDate startLocalDate = LocalDate.parse(startDate, formatter);
+            LocalDate endLocalDate = LocalDate.parse(endDate, formatter);
+
+            Timestamp startTimestamp = Timestamp.valueOf(startLocalDate.atStartOfDay());
+            Timestamp endTimestamp = Timestamp.valueOf(endLocalDate.atTime(LocalTime.MAX));
+
+            return caseRequestService.findAllbyApplicationDate(startTimestamp, endTimestamp, pageable);
         }
+
+        return caseRequestService.findAll(pageable);
+    }
+
+    @GetMapping("/listFilterFull")
+    public SimplePageResponse<ResponseCaseRequestDTO> listFilterFull(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
+            Pageable pageable) {
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+        Timestamp startTimestamp = null;
+        Timestamp endTimestamp = null;
+
+        if (startDate != null && endDate != null) {
+            LocalDate startLocalDate = LocalDate.parse(startDate, formatter);
+            LocalDate endLocalDate = LocalDate.parse(endDate, formatter);
+            startTimestamp = Timestamp.valueOf(startLocalDate.atStartOfDay());
+            endTimestamp = Timestamp.valueOf(endLocalDate.atTime(LocalTime.MAX));
+
+            return caseRequestService.listFilterFull(search, startTimestamp, endTimestamp, status, pageable);
+        }
+        return caseRequestService.findAll(pageable);
     }
 
     @PostMapping("/registerCaseRequest/cust/{id_customer}")

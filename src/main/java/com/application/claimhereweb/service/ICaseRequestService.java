@@ -1,5 +1,7 @@
 package com.application.claimhereweb.service;
 
+import java.sql.Timestamp;
+
 //import java.util.List;
 
 //import org.springframework.data.domain.Page;
@@ -17,7 +19,19 @@ public interface ICaseRequestService {
 
     public ResponseCaseDTO statusCaseRequest(StatusCaseRequestDTO updateCaseRequestDTO);
 
-    public SimplePageResponse<ResponseCaseRequestDTO> findAllFilter(String status, Pageable pageable);
+    public SimplePageResponse<ResponseCaseRequestDTO> listFilterStatus(String status, Pageable pageable);
 
     public SimplePageResponse<ResponseCaseRequestDTO> findAll(Pageable pageable);
+
+    public SimplePageResponse<ResponseCaseRequestDTO> listFilterSearch(String search, Pageable pageable);
+
+    public SimplePageResponse<ResponseCaseRequestDTO> findAllbyApplicationDate(Timestamp startDate, Timestamp endDate,
+            Pageable pageable);
+
+    public SimplePageResponse<ResponseCaseRequestDTO> listFilterFull(
+            String search,
+            Timestamp startDate,
+            Timestamp endDate,
+            String status,
+            Pageable pageable);
 }

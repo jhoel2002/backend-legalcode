@@ -1,5 +1,6 @@
 package com.application.claimhereweb.model.repository;
 
+import java.sql.Timestamp;
 //import java.util.List;
 import java.util.Optional;
 
@@ -23,4 +24,45 @@ public interface CaseRequestRepository extends JpaRepository<CaseRequest, Long> 
 
     @Query("SELECT cr FROM CaseRequest cr WHERE cr.status_request = :status")
     Page<CaseRequest> findAllByStatusRequest(@Param("status") CaseStatusRequest statusRequest, Pageable pageable);
+
+    @Query("""
+                SELECT cr FROM CaseRequest cr
+                WHERE cr.application_date BETWEEN :startDate AND :endDate
+            """)
+    Page<CaseRequest> findCaseRequestByApplicationDateBetween(
+            @Param("startDate") Timestamp startDate,
+            @Param("endDate") Timestamp endDate,
+            Pageable pageable);
+
+    @Query("""
+                SELECT cr FROM CaseRequest cr
+                JOIN cr.customer c
+                JOIN c.user u
+                WHERE LOWER(cr.title) LIKE LOWER(CONCAT('%', :search, '%'))
+                   OR LOWER(cr.description) LIKE LOWER(CONCAT('%', :search, '%'))
+                   OR LOWER(STR(cr.type_case)) LIKE LOWER(CONCAT('%', :search, '%'))
+                   OR LOWER(STR(cr.status_request)) LIKE LOWER(CONCAT('%', :search, '%'))
+                   OR LOWER(u.name) LIKE LOWER(CONCAT('%', :search, '%'))
+            """)
+    Page<CaseRequest> searchCaseRequest(@Param("search") String search, Pageable pageable);
+
+    @Query("""
+                SELECT cr FROM CaseRequest cr
+                JOIN cr.customer c
+                JOIN c.user u
+                WHERE (LOWER(cr.title) LIKE LOWER(CONCAT('%', :search, '%'))
+                    OR LOWER(cr.description) LIKE LOWER(CONCAT('%', :search, '%'))
+                    OR LOWER(STR(cr.type_case)) LIKE LOWER(CONCAT('%', :search, '%'))
+                    OR LOWER(STR(cr.status_request)) LIKE LOWER(CONCAT('%', :search, '%'))
+                    OR LOWER(u.name) LIKE LOWER(CONCAT('%', :search, '%')))
+                  AND cr.application_date BETWEEN :startDate AND :endDate
+                  AND cr.status_request = :status
+            """)
+    Page<CaseRequest> findByFilters(
+            @Param("search") String search,
+            @Param("startDate") Timestamp startDate,
+            @Param("endDate") Timestamp endDate,
+            @Param("status") CaseStatusRequest statusRequest,
+            Pageable pageable);
+
 }

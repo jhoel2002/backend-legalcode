@@ -1,19 +1,25 @@
 package com.application.claimhereweb.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.Timestamp;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.springframework.data.domain.Page;
+
 import com.application.claimhereweb.exceptions.ResourceNotFoundException;
 //import com.application.claimhereweb.model.entity.CaseRequest;
 import com.application.claimhereweb.model.entity.Customer;
 import com.application.claimhereweb.model.entity.LegalCase;
+import com.application.claimhereweb.model.entity.SimplePageResponse;
 import com.application.claimhereweb.model.entity.User;
 import com.application.claimhereweb.model.entity.enumEntity.CaseStatus;
 //import com.application.claimhereweb.model.entity.enumEntity.CaseStatusRequest;
@@ -47,6 +53,63 @@ public class CaseServiceImpl implements ICaseService {
     @Override
 
     @Transactional
+
+    public SimplePageResponse<ResponseCaseDTO> listFilterSearchAndDate(
+            String search,
+            Timestamp startDate,
+            Timestamp endDate,
+            Pageable pageable) {
+        logger.info("Listando casos. Filtro texto: '{}', rango fechas: {} a {}", search, startDate, endDate);
+
+        Page<LegalCase> page;
+
+        boolean hasSearch = search != null && !search.trim().isEmpty();
+        boolean hasDateRange = startDate != null && endDate != null;
+
+        if (hasSearch && hasDateRange) {
+            // Filtrar por texto y rango fechas
+            page = legalCaseRepository.listFilterFull(
+                    search.trim(), startDate, endDate, pageable);
+        } else if (hasSearch) {
+            // Sólo filtro texto
+            page = legalCaseRepository.searchLegalCase(search.trim(), pageable);
+        } else if (hasDateRange) {
+            // Sólo filtro rango fechas
+            page = legalCaseRepository.findCaseByStartDateBetween(startDate, endDate, pageable);
+        } else {
+            // Sin filtros
+            page = legalCaseRepository.findAll(pageable);
+        }
+
+        Page<ResponseCaseDTO> dtoPage = page.map(this::responseCase);
+        return new SimplePageResponse<>(dtoPage);
+    }
+
+    public SimplePageResponse<ResponseCaseDTO> listFilterSearch(String search, Pageable pageable) {
+        logger.info("Listando casos registrados. Filtro: {}", search);
+        Page<LegalCase> page = (search == null || search.trim().isEmpty())
+                ? legalCaseRepository.findAll(pageable)
+                : legalCaseRepository.searchLegalCase(search.trim(), pageable);
+        Page<ResponseCaseDTO> dtoPage = page.map(this::responseCase);
+        return new SimplePageResponse<>(dtoPage);
+    }
+
+    public SimplePageResponse<ResponseCaseDTO> findAllByStartDate(Timestamp startDate, Timestamp endDate,
+            Pageable pageable) {
+        logger.info("Listando casos registrados entre {} y {}", startDate, endDate);
+
+        Page<LegalCase> page = legalCaseRepository.findCaseByStartDateBetween(startDate, endDate, pageable);
+        Page<ResponseCaseDTO> dtoPage = page.map(this::responseCase);
+        return new SimplePageResponse<>(dtoPage);
+    }
+
+    public SimplePageResponse<ResponseCaseDTO> findAll(Pageable pageable) {
+        logger.info("Listando casos legales registrados");
+        Page<LegalCase> page = legalCaseRepository.findAll(pageable);
+        Page<ResponseCaseDTO> dtoPage = page.map(this::responseCase);
+        return new SimplePageResponse<>(dtoPage);
+    }
+
     public ResponseCaseDTO saveCaseAdministrator(SaveCaseDTO dto, Long id_customer) {
         logger.info("Caso Registrado por Administrador :D");
         logger.info("Registrando caso con título: {}", dto.getTitle());
@@ -82,7 +145,9 @@ public class CaseServiceImpl implements ICaseService {
     public ResponseCaseDTO responseCase(LegalCase caseModel) {
         ResponseCaseDTO response = modelMapper.map(caseModel, ResponseCaseDTO.class);
         response.setCustomer(caseModel.getCustomer().getUser().getName());
-        logger.info("Caso guardado con ID: {}", caseModel.getId());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String formattedDate = caseModel.getStart_date().toLocalDateTime().format(formatter);
+        response.setStart_date(formattedDate);
         return response;
     }
 
