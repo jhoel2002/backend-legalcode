@@ -3,8 +3,10 @@ package com.application.claimhereweb.service;
 import com.application.claimhereweb.model.entity.SimplePageResponse;
 import com.application.claimhereweb.service.dto.ReponseUpdateLawyer;
 import com.application.claimhereweb.service.dto.ResponseCaseDTO;
+import com.application.claimhereweb.service.dto.ResponseStatusUpdateCase;
 import com.application.claimhereweb.service.dto.SaveCaseDTO;
 import com.application.claimhereweb.service.dto.UpdateLawyer;
+import com.application.claimhereweb.service.dto.UpdateStatusCase;
 
 import java.sql.Timestamp;
 
@@ -12,6 +14,8 @@ import java.sql.Timestamp;
 import org.springframework.data.domain.Pageable;
 
 public interface ICaseService {
+
+        public ResponseStatusUpdateCase statusCase(UpdateStatusCase updateStatusCase);
 
         public ReponseUpdateLawyer assignLawyer(UpdateLawyer updateLawyer);
 
