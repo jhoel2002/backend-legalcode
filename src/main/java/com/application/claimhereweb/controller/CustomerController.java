@@ -7,8 +7,10 @@ import java.time.format.DateTimeFormatter;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,6 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.application.claimhereweb.model.entity.SimplePageResponse;
 import com.application.claimhereweb.service.ICustomerService;
 import com.application.claimhereweb.service.dto.ResponseCustomerDTO;
+import com.application.claimhereweb.service.dto.ResponseSaveCustomerDTO;
+import com.application.claimhereweb.service.dto.SaveCustomerDTO;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import jakarta.validation.Valid;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:4200", originPatterns = "*")
@@ -24,6 +31,12 @@ public class CustomerController {
 
     @Autowired
     private ICustomerService customerService;
+
+    @PostMapping("/saveCustomer")
+    public ResponseEntity<ResponseSaveCustomerDTO> saveCustomer(@Valid @RequestBody SaveCustomerDTO dto) {
+        ResponseSaveCustomerDTO response = customerService.saveCustomer(dto);
+        return ResponseEntity.ok(response);
+    }
 
     @GetMapping
     public SimplePageResponse<ResponseCustomerDTO> listAll(Pageable pageable) {

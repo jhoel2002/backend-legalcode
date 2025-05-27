@@ -30,9 +30,11 @@ import com.application.claimhereweb.model.repository.UserRepository;
 import com.application.claimhereweb.service.ICaseService;
 import com.application.claimhereweb.service.dto.ReponseUpdateLawyer;
 import com.application.claimhereweb.service.dto.ResponseCaseDTO;
+import com.application.claimhereweb.service.dto.ResponseStatusUpdateCase;
 import com.application.claimhereweb.service.dto.SaveCaseDTO;
 //import com.application.claimhereweb.service.dto.SaveCaseUserDTO;
 import com.application.claimhereweb.service.dto.UpdateLawyer;
+import com.application.claimhereweb.service.dto.UpdateStatusCase;
 
 @Service
 public class CaseServiceImpl implements ICaseService {
@@ -59,6 +61,24 @@ public class CaseServiceImpl implements ICaseService {
     @Override
 
     @Transactional
+
+    public ResponseStatusUpdateCase statusCase(UpdateStatusCase updateStatusCase) {
+        logger.info("Cambiando el estado del caso legal");
+        LegalCase legalCase = legalCaseRepository.findById(updateStatusCase.getId())
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("No se encontró el caso legal con el ID proporcionado."));
+        CaseStatus caseStatus = CaseStatus.valueOf(updateStatusCase.getStatus_case().toUpperCase());
+        legalCase.setStatus_case(caseStatus);
+
+        legalCaseRepository.save(legalCase);
+
+        ResponseStatusUpdateCase responseStatusUpdateCase = new ResponseStatusUpdateCase();
+        responseStatusUpdateCase.setId(legalCase.getId());
+        responseStatusUpdateCase.setTitle(legalCase.getTitle());
+        responseStatusUpdateCase.setType_case(legalCase.getType_case().name());
+        responseStatusUpdateCase.setStatus_case(legalCase.getStatus_case().name());
+        return responseStatusUpdateCase;
+    }
 
     public ReponseUpdateLawyer assignLawyer(UpdateLawyer updateLawyer) {
         logger.info("Asignando Abogado al caso legal indicado");

@@ -22,9 +22,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.application.claimhereweb.model.entity.SimplePageResponse;
 import com.application.claimhereweb.service.dto.ReponseUpdateLawyer;
 import com.application.claimhereweb.service.dto.ResponseCaseDTO;
+import com.application.claimhereweb.service.dto.ResponseStatusUpdateCase;
 //import com.application.claimhereweb.model.entity.Case;
 import com.application.claimhereweb.service.dto.SaveCaseDTO;
 import com.application.claimhereweb.service.dto.UpdateLawyer;
+import com.application.claimhereweb.service.dto.UpdateStatusCase;
 //import com.application.claimhereweb.service.dto.SaveCaseUserDTO;
 import com.application.claimhereweb.service.impl.CaseServiceImpl;
 import org.springframework.data.domain.Pageable;
@@ -38,6 +40,12 @@ public class CaseController {
 
     @Autowired
     private CaseServiceImpl caseService;
+
+    @PutMapping("/updateStatusCase")
+    public ResponseEntity<?> updateStatusCase(@Valid @RequestBody UpdateStatusCase updateStatusCase) {
+        ResponseStatusUpdateCase responseStatusUpdateCase = caseService.statusCase(updateStatusCase);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(responseStatusUpdateCase);
+    }
 
     @PutMapping("/assignLawyer")
     public ResponseEntity<?> assignLawyer(@Valid @RequestBody UpdateLawyer updateLawyer) {

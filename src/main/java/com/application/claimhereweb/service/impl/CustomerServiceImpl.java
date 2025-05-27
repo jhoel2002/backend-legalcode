@@ -11,14 +11,20 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.application.claimhereweb.model.entity.Customer;
 import com.application.claimhereweb.model.entity.SimplePageResponse;
 import com.application.claimhereweb.model.repository.CustomerRepository;
+import com.application.claimhereweb.model.repository.RoleRepository;
+import com.application.claimhereweb.model.repository.UserRepository;
 import com.application.claimhereweb.service.ICustomerService;
 import com.application.claimhereweb.service.dto.ResponseCustomerDTO;
+import com.application.claimhereweb.service.dto.ResponseSaveCustomerDTO;
+import com.application.claimhereweb.service.dto.SaveCustomerDTO;
+import com.application.claimhereweb.model.entity.User;
 
 @Service
 public class CustomerServiceImpl implements ICustomerService {
@@ -28,11 +34,46 @@ public class CustomerServiceImpl implements ICustomerService {
     CustomerRepository customerRepository;
 
     @Autowired
+    UserRepository userRepository;
+
+    @Autowired
     private ModelMapper modelMapper;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    RoleRepository roleRepository;
 
     @Override
 
     @Transactional
+
+    public ResponseSaveCustomerDTO saveCustomer(SaveCustomerDTO dto) {
+        // 1. Mapear SaveCustomerDTO → User
+        User user = modelMapper.map(dto, User.class);
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        user.setEnabled(true);
+        user = userRepository.save(user);
+
+        // 2. Insertar en users_roles directamente con ID del user y un ID fijo de rol
+        // cliente (2)
+        Long role = 2L;
+        roleRepository.assignRoleToUser(user.getId(), role); // user.getId() debe devolver un Long no nulo
+
+        // 3. Mapear SaveCustomerDTO → Customer y setear el user
+        Customer customer = modelMapper.map(dto, Customer.class);
+        customer.setUser(user);
+        customer = customerRepository.save(customer);
+
+        // 4. Mapear User a Response DTO
+        ResponseSaveCustomerDTO response = modelMapper.map(user, ResponseSaveCustomerDTO.class);
+        response.setType_document_customer(customer.getType_document_customer().name());
+        response.setDocument(customer.getDocument());
+
+        return response;
+    }
+
     // Listado completo de clientes
     public SimplePageResponse<ResponseCustomerDTO> findAll(Pageable pageable) {
         logger.info("Listando clientes registrados");
