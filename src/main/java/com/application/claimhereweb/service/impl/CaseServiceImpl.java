@@ -26,10 +26,13 @@ import com.application.claimhereweb.model.entity.enumEntity.CaseStatus;
 //import com.application.claimhereweb.model.repository.CaseRequestRepository;
 import com.application.claimhereweb.model.repository.CustomerRepository;
 import com.application.claimhereweb.model.repository.LegalCaseRepository;
+import com.application.claimhereweb.model.repository.UserRepository;
 import com.application.claimhereweb.service.ICaseService;
+import com.application.claimhereweb.service.dto.ReponseUpdateLawyer;
 import com.application.claimhereweb.service.dto.ResponseCaseDTO;
 import com.application.claimhereweb.service.dto.SaveCaseDTO;
 //import com.application.claimhereweb.service.dto.SaveCaseUserDTO;
+import com.application.claimhereweb.service.dto.UpdateLawyer;
 
 @Service
 public class CaseServiceImpl implements ICaseService {
@@ -43,6 +46,9 @@ public class CaseServiceImpl implements ICaseService {
     private CustomerRepository customerRepository;
 
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
     private ModelMapper modelMapper;
 
     /*
@@ -53,6 +59,33 @@ public class CaseServiceImpl implements ICaseService {
     @Override
 
     @Transactional
+
+    public ReponseUpdateLawyer assignLawyer(UpdateLawyer updateLawyer) {
+        logger.info("Asignando Abogado al caso legal indicado");
+
+        Long validateRoleLawyer = Optional.ofNullable(
+                legalCaseRepository.findLawyerIdByUserId(updateLawyer.getUser()))
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario no tiene asignado el rol de abogado :c"));
+
+        LegalCase legalCase = legalCaseRepository.findById(updateLawyer.getId())
+                .orElseThrow(
+                        () -> new ResourceNotFoundException("No se encontró el caso legal con el ID proporcionado."));
+
+        User lawyer = userRepository.findById(validateRoleLawyer)
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontró el usuario con el ID proporcionado."));
+
+        legalCase.setUser(lawyer);
+
+        legalCaseRepository.save(legalCase);
+
+        ReponseUpdateLawyer response = new ReponseUpdateLawyer();
+        response.setId(legalCase.getId());
+        response.setCaseType(legalCase.getType_case().name());
+        response.setName(lawyer.getName());
+        response.setRole(lawyer.getFirstRoleName());
+
+        return response;
+    }
 
     public SimplePageResponse<ResponseCaseDTO> listFilterSearchAndDate(
             String search,
