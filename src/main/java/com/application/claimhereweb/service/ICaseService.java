@@ -1,8 +1,10 @@
 package com.application.claimhereweb.service;
 
 import com.application.claimhereweb.model.entity.SimplePageResponse;
+import com.application.claimhereweb.service.dto.ReponseUpdateLawyer;
 import com.application.claimhereweb.service.dto.ResponseCaseDTO;
 import com.application.claimhereweb.service.dto.SaveCaseDTO;
+import com.application.claimhereweb.service.dto.UpdateLawyer;
 
 import java.sql.Timestamp;
 
@@ -10,19 +12,22 @@ import java.sql.Timestamp;
 import org.springframework.data.domain.Pageable;
 
 public interface ICaseService {
-    public ResponseCaseDTO saveCaseAdministrator(SaveCaseDTO value_case, Long id_customer);
 
-    public SimplePageResponse<ResponseCaseDTO> findAll(Pageable pageable);
+        public ReponseUpdateLawyer assignLawyer(UpdateLawyer updateLawyer);
 
-    public SimplePageResponse<ResponseCaseDTO> findAllByStartDate(Timestamp startDate, Timestamp endDate,
-            Pageable pageable);
+        public ResponseCaseDTO saveCaseAdministrator(SaveCaseDTO value_case, Long id_customer);
 
-    public SimplePageResponse<ResponseCaseDTO> listFilterSearch(String search, Pageable pageable);
+        public SimplePageResponse<ResponseCaseDTO> findAll(Pageable pageable);
 
-    public SimplePageResponse<ResponseCaseDTO> listFilterSearchAndDate(
-            String search,
-            Timestamp startDate,
-            Timestamp endDate,
-            Pageable pageable);
-    // public ResponseCaseDTO saveCaseUser(SaveCaseUserDTO value_case);
+        public SimplePageResponse<ResponseCaseDTO> findAllByStartDate(Timestamp startDate, Timestamp endDate,
+                        Pageable pageable);
+
+        public SimplePageResponse<ResponseCaseDTO> listFilterSearch(String search, Pageable pageable);
+
+        public SimplePageResponse<ResponseCaseDTO> listFilterSearchAndDate(
+                        String search,
+                        Timestamp startDate,
+                        Timestamp endDate,
+                        Pageable pageable);
+        // public ResponseCaseDTO saveCaseUser(SaveCaseUserDTO value_case);
 }

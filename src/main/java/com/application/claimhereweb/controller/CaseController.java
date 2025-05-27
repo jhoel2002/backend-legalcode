@@ -13,15 +13,18 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.application.claimhereweb.model.entity.SimplePageResponse;
+import com.application.claimhereweb.service.dto.ReponseUpdateLawyer;
 import com.application.claimhereweb.service.dto.ResponseCaseDTO;
 //import com.application.claimhereweb.model.entity.Case;
 import com.application.claimhereweb.service.dto.SaveCaseDTO;
+import com.application.claimhereweb.service.dto.UpdateLawyer;
 //import com.application.claimhereweb.service.dto.SaveCaseUserDTO;
 import com.application.claimhereweb.service.impl.CaseServiceImpl;
 import org.springframework.data.domain.Pageable;
@@ -35,6 +38,12 @@ public class CaseController {
 
     @Autowired
     private CaseServiceImpl caseService;
+
+    @PutMapping("/assignLawyer")
+    public ResponseEntity<?> assignLawyer(@Valid @RequestBody UpdateLawyer updateLawyer) {
+        ReponseUpdateLawyer reponseUpdateLawyer = caseService.assignLawyer(updateLawyer);
+        return ResponseEntity.status(HttpStatus.CREATED).body(reponseUpdateLawyer);
+    }
 
     @GetMapping
     public SimplePageResponse<ResponseCaseDTO> listAll(Pageable pageable) {
