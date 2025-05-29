@@ -2,6 +2,7 @@ package com.application.claimhereweb.service.impl;
 
 import java.sql.Timestamp;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 //import java.util.List;
 import java.util.Optional;
 //import java.util.stream.Collectors;
@@ -55,6 +56,9 @@ public class CaseRequestImpl implements ICaseRequestService {
 
     @Autowired
     private ModelMapper modelMapper;
+
+    @Autowired
+    EmailService emailService;
 
     @Override
 
@@ -145,6 +149,27 @@ public class CaseRequestImpl implements ICaseRequestService {
 
             caseRequest.setStatus_request(caseStatusRequest);
             caseRequestRepository.save(caseRequest);
+
+            // Armando cuerpo del mensaje
+
+            String nombre_customer = caseRequest.getCustomer().getUser().getName();
+            String apellido_customer = caseRequest.getCustomer().getUser().getLast_name();
+
+            String customer = nombre_customer + " " + apellido_customer;
+
+            String abogado = "Coordinación General";
+
+            String estadoSolicitud = caseStatusRequest.toString();
+
+            Map<String, Object> variables = Map.of(
+                    "estado_solicitud", estadoSolicitud,
+                    "nombre_cliente", customer,
+                    "nombre_abogado", abogado);
+
+            String correoDestino = caseRequest.getCustomer().getUser().getEmail();
+
+            emailService.sendEmailUsingTemplate("status_caso_legal", variables, correoDestino);
+            logger.info("Correo enviado a: " + correoDestino);
 
             logger.info("Validando estado de la solicitud :D");
 
