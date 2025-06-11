@@ -73,4 +73,41 @@ public class AWSS3ServiceImpl implements AWSS3Service {
         S3Object object = amazonS3.getObject(bucketName, fullKey);
         return object.getObjectContent();
     }
+
+    @Override
+    public void uploadFileWithMetadata(MultipartFile file, String name, String typeDocument) {
+        String tipoMime = file.getContentType();
+
+        List<String> tiposPermitidos = List.of(
+                "application/pdf",
+                "image/png",
+                "image/jpeg",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+                "text/csv");
+
+        if (tipoMime == null || !tiposPermitidos.contains(tipoMime)) {
+            throw new IllegalArgumentException("Tipo de archivo no permitido: " + tipoMime);
+        }
+
+        File mainFile = new File(file.getOriginalFilename());
+        try (FileOutputStream stream = new FileOutputStream(mainFile)) {
+            stream.write(file.getBytes());
+
+            String newFileName = System.currentTimeMillis() + "_" + mainFile.getName();
+            String s3Key = "documents/" + newFileName; // todo se sube a la carpeta 'documents/'
+
+            logger.info("Subiendo archivo con nombre lógico: " + name);
+            logger.info("Tipo declarado por el usuario: " + typeDocument);
+            logger.info("MIME type detectado: " + tipoMime);
+            logger.info("Subiendo a S3 con key: " + s3Key);
+
+            PutObjectRequest request = new PutObjectRequest(bucketName, s3Key, mainFile);
+            amazonS3.putObject(request);
+
+        } catch (IOException e) {
+            logger.error("Error al subir archivo: " + e.getMessage(), e);
+            throw new RuntimeException("Fallo al subir el archivo a S3", e);
+        }
+    }
 }

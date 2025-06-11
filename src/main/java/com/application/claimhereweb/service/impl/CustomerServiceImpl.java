@@ -2,6 +2,7 @@ package com.application.claimhereweb.service.impl;
 
 import java.sql.Timestamp;
 import java.time.format.DateTimeFormatter;
+import java.util.Random;
 
 //import java.time.format.DateTimeFormatter;
 
@@ -15,8 +16,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.application.claimhereweb.model.entity.Buffet;
 import com.application.claimhereweb.model.entity.Customer;
 import com.application.claimhereweb.model.entity.SimplePageResponse;
+import com.application.claimhereweb.model.repository.BuffetRepository;
 import com.application.claimhereweb.model.repository.CustomerRepository;
 import com.application.claimhereweb.model.repository.RoleRepository;
 import com.application.claimhereweb.model.repository.UserRepository;
@@ -37,6 +40,9 @@ public class CustomerServiceImpl implements ICustomerService {
     UserRepository userRepository;
 
     @Autowired
+    BuffetRepository buffetRepository;
+
+    @Autowired
     private ModelMapper modelMapper;
 
     @Autowired
@@ -49,28 +55,36 @@ public class CustomerServiceImpl implements ICustomerService {
 
     @Transactional
 
+    // Registro de Clientes
     public ResponseSaveCustomerDTO saveCustomer(SaveCustomerDTO dto) {
-        // 1. Mapear SaveCustomerDTO → User
+        logger.info("Verificando buffet con ID {}", dto.getBuffet());
+
+        Buffet buffet = buffetRepository.findById(dto.getBuffet())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "El buffet con ID " + dto.getBuffet() + " no fue encontrado"));
+
         User user = modelMapper.map(dto, User.class);
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        user.setEnabled(true);
+        user.setEnable(true);
+        user.setCode(generateUniqueCode());
+        user.setBuffet(new Buffet() {
+            {
+                setId(buffet.getId());
+            }
+        });
         user = userRepository.save(user);
 
-        // 2. Insertar en users_roles directamente con ID del user y un ID fijo de rol
-        // cliente (2)
-        Long role = 2L;
-        roleRepository.assignRoleToUser(user.getId(), role); // user.getId() debe devolver un Long no nulo
+        Long role = 2L; // (Role 2 = Customer)
+        roleRepository.assignRoleToUser(user.getId(), role);
 
-        // 3. Mapear SaveCustomerDTO → Customer y setear el user
         Customer customer = modelMapper.map(dto, Customer.class);
         customer.setUser(user);
         customer = customerRepository.save(customer);
 
-        // 4. Mapear User a Response DTO
         ResponseSaveCustomerDTO response = modelMapper.map(user, ResponseSaveCustomerDTO.class);
-        response.setType_document_customer(customer.getType_document_customer().name());
-        response.setDocument(customer.getDocument());
-
+        response.setDocument_type(customer.getDocument_type().name());
+        response.setDocument_number(customer.getDocument_number());
+        response.setBuffet(buffet.getName());
         return response;
     }
 
@@ -142,20 +156,34 @@ public class CustomerServiceImpl implements ICustomerService {
         ResponseCustomerDTO responseCustomerDTO = modelMapper.map(customer, ResponseCustomerDTO.class);
         responseCustomerDTO.setEmail(customer.getUser().getEmail());
         responseCustomerDTO.setName(customer.getUser().getName());
+        responseCustomerDTO.setCode(customer.getUser().getCode());
         responseCustomerDTO.setLast_name(customer.getUser().getLast_name());
         responseCustomerDTO.setPhone(customer.getUser().getPhone());
         responseCustomerDTO.setAddress(customer.getUser().getAddress());
-        responseCustomerDTO.setEnabled(customer.getUser().isEnabled());
+        responseCustomerDTO.setEnabled(customer.getUser().isEnable());
+        responseCustomerDTO.setBuffet(customer.getUser().getBuffet().getName());
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String formattedDate = customer.getUser().getCreation().toLocalDateTime().format(formatter);
         responseCustomerDTO.setCreation(formattedDate);
         return responseCustomerDTO;
     }
 
-    /*
-     * DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-     * String formattedDate =
-     * caseRequest.getApplication_date().toLocalDateTime().format(formatter);
-     * reponseCaseRequestDTO.setApplication_date(formattedDate);
-     */
+    private String generateCode() {
+        String letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        StringBuilder code = new StringBuilder();
+        Random random = new Random();
+        for (int i = 0; i < 3; i++)
+            code.append(letters.charAt(random.nextInt(letters.length())));
+        for (int i = 0; i < 3; i++)
+            code.append(random.nextInt(10));
+        return code.toString();
+    }
+
+    private String generateUniqueCode() {
+        String code;
+        do {
+            code = generateCode();
+        } while (userRepository.existsByCode(code));
+        return code;
+    }
 }

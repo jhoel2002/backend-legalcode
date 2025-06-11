@@ -24,12 +24,12 @@ public class Customer {
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "type_document_customer", nullable = false)
+    @Column(name = "document_type", nullable = false)
     @Enumerated(EnumType.STRING)
-    private DocumentCustomertype type_document_customer;
+    private DocumentCustomertype document_type;
 
-    @Column(name = "document", nullable = false)
-    private String document;
+    @Column(name = "document_number", nullable = false)
+    private String document_number;
 
     @JoinColumn(name = "id_users", referencedColumnName = "id", nullable = false)
     @OneToOne(fetch = FetchType.LAZY)

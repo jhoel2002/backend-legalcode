@@ -15,23 +15,24 @@ import com.application.claimhereweb.service.dto.StatusCaseRequestDTO;
 
 public interface ICaseRequestService {
 
-    public ResponseCaseRequestDTO saveCaseRequest(SaveCaseRequestDTO SaveCaseDTO, Long id_customer);
+        public ResponseCaseRequestDTO saveCaseRequest(SaveCaseRequestDTO SaveCaseDTO, Long id_customer);
 
-    public ResponseCaseDTO statusCaseRequest(StatusCaseRequestDTO updateCaseRequestDTO);
+        public ResponseCaseDTO statusCaseRequest(StatusCaseRequestDTO updateCaseRequestDTO);
 
-    public SimplePageResponse<ResponseCaseRequestDTO> listFilterStatus(String status, Pageable pageable);
+        public SimplePageResponse<ResponseCaseRequestDTO> listFilterStatus(String status, Pageable pageable);
 
-    public SimplePageResponse<ResponseCaseRequestDTO> findAll(Pageable pageable);
+        public SimplePageResponse<ResponseCaseRequestDTO> findAll(Pageable pageable);
 
-    public SimplePageResponse<ResponseCaseRequestDTO> listFilterSearch(String search, Pageable pageable);
+        public SimplePageResponse<ResponseCaseRequestDTO> listFilterSearch(String search, Pageable pageable);
 
-    public SimplePageResponse<ResponseCaseRequestDTO> findAllbyApplicationDate(Timestamp startDate, Timestamp endDate,
-            Pageable pageable);
+        public SimplePageResponse<ResponseCaseRequestDTO> findAllbyApplicationDate(Timestamp startDate,
+                        Timestamp endDate,
+                        Pageable pageable);
 
-    public SimplePageResponse<ResponseCaseRequestDTO> listFilterFull(
-            String search,
-            Timestamp startDate,
-            Timestamp endDate,
-            String status,
-            Pageable pageable);
+        public SimplePageResponse<ResponseCaseRequestDTO> listFilterFull(
+                        String search,
+                        Timestamp startDate,
+                        Timestamp endDate,
+                        String status,
+                        Pageable pageable);
 }

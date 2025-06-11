@@ -34,13 +34,13 @@ public class LegalCase {
     @Column(name = "description", nullable = false)
     private String description;
 
-    @Column(name = "status_case", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private CaseStatus status_case;
-
     @Column(name = "type_case", nullable = false)
     @Enumerated(EnumType.STRING)
     private CaseType type_case;
+
+    @Column(name = "status_case", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private CaseStatus status_case;
 
     @Column(name = "start_date", nullable = false)
     @CreationTimestamp
@@ -50,14 +50,18 @@ public class LegalCase {
     private Timestamp end_date;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_lawyer", referencedColumnName = "id", nullable = true)
+    private Lawyer lawyer;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_customer", referencedColumnName = "id", nullable = false)
     private Customer customer;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_users", referencedColumnName = "id", nullable = true)
-    private User user;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_case_request", referencedColumnName = "id", nullable = true)
     private CaseRequest case_request;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_buffet", nullable = false)
+    private Buffet buffet;
 }
