@@ -7,10 +7,12 @@ public class ResponseSaveCustomerDTO {
     private Long id;
     private String email;
     private String name;
+    private String code;
     private String password;
     private String last_name;
     private String phone;
     private String address;
-    private String type_document_customer;
-    private String document;
+    private String document_type;
+    private String document_number;
+    private String buffet;
 }

@@ -56,4 +56,26 @@ public class AWSS3Controller {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + key + "\"")
                 .body(resource);
     }
+
+    @PostMapping(value = "/upload-with-metadata")
+    public ResponseEntity<String> uploadFileWithMetadata(
+            @RequestPart("file") MultipartFile file,
+            @RequestParam("name") String name,
+            @RequestParam("type_document") String typeDocument) {
+
+        try {
+            awss3Service.uploadFileWithMetadata(file, name, typeDocument);
+            String response = "El archivo " + file.getOriginalFilename() +
+                    " fue cargado correctamente con el nombre lógico '" + name +
+                    "' y tipo de documento '" + typeDocument + "'";
+            return new ResponseEntity<>(response, HttpStatus.OK);
+
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error al subir el archivo: " + e.getMessage(),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

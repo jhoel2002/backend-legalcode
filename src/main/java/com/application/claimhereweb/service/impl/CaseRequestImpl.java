@@ -129,7 +129,7 @@ public class CaseRequestImpl implements ICaseRequestService {
         ResponseCaseRequestDTO reponseCaseRequestDTO = modelMapper.map(caseRequest, ResponseCaseRequestDTO.class);
         reponseCaseRequestDTO.setCustomer(caseRequest.getCustomer().getUser().getName());
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        String formattedDate = caseRequest.getApplication_date().toLocalDateTime().format(formatter);
+        String formattedDate = caseRequest.getCreation().toLocalDateTime().format(formatter);
         reponseCaseRequestDTO.setApplication_date(formattedDate);
         return reponseCaseRequestDTO;
     }

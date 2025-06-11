@@ -39,13 +39,20 @@ public class CaseRequest {
     private CaseType type_case;
 
     @Enumerated(EnumType.STRING)
-    private CaseStatusRequest status_request = CaseStatusRequest.PENDING;
+    private CaseStatusRequest status_request = CaseStatusRequest.RECEIVED;
 
-    @Column(name = "application_date", nullable = false)
+    @Column(name = "creation", nullable = false)
     @CreationTimestamp
-    private Timestamp application_date;
+    private Timestamp creation;
+
+    @Column(name = "quotation_approved")
+    private boolean quotation_approved;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_customer", referencedColumnName = "id", nullable = false)
     private Customer customer;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_buffet", nullable = false)
+    private Buffet buffet;
 }

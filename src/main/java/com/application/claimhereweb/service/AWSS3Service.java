@@ -9,6 +9,8 @@ public interface AWSS3Service {
 
     void uploadFile(MultipartFile file, String nombreCarpeta);
 
+    void uploadFileWithMetadata(MultipartFile file, String name, String typeDocument);
+
     List<String> getObjectFromS3();
 
     InputStream downloadFile(String nombreCarpeta, String key);

@@ -28,34 +28,25 @@ public class Document {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name_document", nullable = false)
-    private String name_document;
-
-    @Column(name = "url_document", nullable = false)
-    private String url_document;
+    @Column(name = "name", nullable = false)
+    private String name;
 
     @Column(name = "type_document", nullable = false)
     @Enumerated(EnumType.STRING)
     private DocumentType type_document;
 
-    @Column(name = "upload_date", nullable = false)
+    @Column(name = "key_document", nullable = false)
+    private String key_document;
+
+    @Column(name = "creation", nullable = false)
     @CreationTimestamp
-    private Timestamp upload_date;
+    private Timestamp creation;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_legal_case", referencedColumnName = "id", nullable = false)
-    private LegalCase legal_case;
+    @JoinColumn(name = "id_case_request", referencedColumnName = "id", nullable = true)
+    private CaseRequest case_request;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_users", referencedColumnName = "id", nullable = true)
-    private User user;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_customer", referencedColumnName = "id", nullable = true)
-    private Customer customer;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_case_activity", referencedColumnName = "id", nullable = true)
-    private CaseActivity case_activity;
-
+    @JoinColumn(name = "id_buffet", nullable = false)
+    private Buffet buffet;
 }

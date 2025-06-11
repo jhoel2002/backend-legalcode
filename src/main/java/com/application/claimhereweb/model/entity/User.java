@@ -15,6 +15,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Data;
@@ -28,20 +29,26 @@ public class User {
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "name", nullable = false)
-    private String name;
-
-    @Column(name = "last_name", nullable = false)
-    private String last_name;
-
-    @Column(name = "phone", nullable = false)
-    private String phone;
+    @Column(name = "enable")
+    private boolean enable;
 
     @Column(name = "email", unique = true, nullable = false)
     private String email;
 
     @Column(name = "password", nullable = false)
     private String password;
+
+    @Column(name = "name", nullable = false)
+    private String name;
+
+    @Column(name = "code", nullable = false)
+    private String code;
+
+    @Column(name = "last_name", nullable = false)
+    private String last_name;
+
+    @Column(name = "phone", nullable = false)
+    private String phone;
 
     @Column(name = "address", nullable = false)
     private String address;
@@ -55,12 +62,13 @@ public class User {
     @Column(name = "roles")
     private Set<Role> roles = new HashSet<>();
 
-    @Column(name = "enabled")
-    private boolean enabled;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_buffet", nullable = false)
+    private Buffet buffet;
 
     @PrePersist
     public void prePersist() {
-        enabled = true;
+        enable = true;
     }
 
     public String getFirstRoleName() {

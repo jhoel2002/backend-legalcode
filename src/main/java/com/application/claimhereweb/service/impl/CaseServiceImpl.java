@@ -94,7 +94,7 @@ public class CaseServiceImpl implements ICaseService {
         User lawyer = userRepository.findById(validateRoleLawyer)
                 .orElseThrow(() -> new ResourceNotFoundException("No se encontró el usuario con el ID proporcionado."));
 
-        legalCase.setUser(lawyer);
+        // legalCase.setUser(lawyer);
 
         legalCaseRepository.save(legalCase);
 

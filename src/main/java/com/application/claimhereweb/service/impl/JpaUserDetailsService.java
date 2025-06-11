@@ -17,8 +17,8 @@ import com.application.claimhereweb.model.entity.User;
 import com.application.claimhereweb.model.repository.UserRepository;
 
 @Service
-public class JpaUserDetailsService implements UserDetailsService{
-    
+public class JpaUserDetailsService implements UserDetailsService {
+
     @Autowired
     private UserRepository userRepository;
 
@@ -35,15 +35,15 @@ public class JpaUserDetailsService implements UserDetailsService{
         User user = userOptional.orElseThrow();
 
         List<GrantedAuthority> authorities = user.getRoles().stream()
-        .map(role -> new SimpleGrantedAuthority(role.getName()))
+                .map(role -> new SimpleGrantedAuthority(role.getName()))
                 .collect(Collectors.toList());
 
-        return new org.springframework.security.core.userdetails.User(user.getEmail(), 
-        user.getPassword(), 
-        user.isEnabled(),
-        true,
-        true,
-        true,
+        return new org.springframework.security.core.userdetails.User(user.getEmail(),
+                user.getPassword(),
+                user.isEnable(),
+                true,
+                true,
+                true,
                 authorities);
     }
 }
