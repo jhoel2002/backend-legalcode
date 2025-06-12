@@ -29,6 +29,9 @@ public class CaseRequest {
     @Column(name = "id", nullable = false)
     private Long id;
 
+    @Column(name = "code", nullable = false)
+    private String code;
+
     @Column(name = "title", nullable = false)
     private String title;
 
@@ -45,8 +48,9 @@ public class CaseRequest {
     @CreationTimestamp
     private Timestamp creation;
 
-    @Column(name = "quotation_approved")
-    private boolean quotation_approved;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_lawyer", referencedColumnName = "id", nullable = false)
+    private Lawyer lawyer;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_customer", referencedColumnName = "id", nullable = false)

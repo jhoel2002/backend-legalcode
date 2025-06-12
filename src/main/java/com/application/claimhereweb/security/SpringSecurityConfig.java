@@ -47,6 +47,22 @@ public class SpringSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http.authorizeHttpRequests((authz) -> authz
+                // ENDPOINTS DE BUFFET
+                .requestMatchers(HttpMethod.POST, "/api/buffet/save").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/buffet/{code}/logo").permitAll()
+                .requestMatchers(HttpMethod.PATCH, "/api/buffet/enable").permitAll()
+                // ENDPOINTS DE CUSTOMER
+                .requestMatchers(HttpMethod.POST, "/api/customer/save").permitAll()
+                .requestMatchers(HttpMethod.PUT, "/api/customer/updateCustomer/{code}").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/customer/**").permitAll()
+                // ENDPOINTS DE USER
+                .requestMatchers(HttpMethod.PATCH, "/api/users/enable").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/users/**").permitAll()
+                // ENDPOINTS DE LAWYER
+                .requestMatchers(HttpMethod.POST, "/api/lawyer/save").permitAll()
+                .requestMatchers(HttpMethod.PUT, "/api/lawyer/updateLawyer/{code}").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/lawyer/**").permitAll()
+
                 .requestMatchers(HttpMethod.GET, "/api/users").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/factures/export-pdf").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/factures/export-xls").permitAll()

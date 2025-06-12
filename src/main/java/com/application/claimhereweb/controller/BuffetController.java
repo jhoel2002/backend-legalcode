@@ -1,18 +1,22 @@
 package com.application.claimhereweb.controller;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.application.claimhereweb.service.dto.ReponseSaveBuffetDTO;
 import com.application.claimhereweb.service.dto.SaveBuffetDTO;
+import com.application.claimhereweb.service.dto.UpdateBuffetEnableDTO;
 import com.application.claimhereweb.service.impl.BuffetServiceImpl;
-import com.application.claimhereweb.service.impl.CaseRequestImpl;
+import org.springframework.http.HttpStatus;
 
 import jakarta.validation.Valid;
 
@@ -21,14 +25,24 @@ import jakarta.validation.Valid;
 @RequestMapping("api/buffet")
 public class BuffetController {
     @Autowired
-    private BuffetServiceImpl buffetServiceImpl;
-    private static final Logger logger = LoggerFactory.getLogger(CaseRequestImpl.class);
+    private BuffetServiceImpl buffetService;
 
-    @PostMapping("/saveBuffet")
-    public ResponseEntity<ReponseSaveBuffetDTO> saveBuffet(@Valid @RequestBody SaveBuffetDTO dto) {
-        logger.info("Guardando buffet con name='{}', enable='{}'", dto.getName(), dto.isEnable());
+    @PostMapping("/save")
+    public ResponseEntity<ReponseSaveBuffetDTO> createBuffet(@Valid @RequestBody SaveBuffetDTO dto) {
+        ReponseSaveBuffetDTO response = buffetService.saveBuffet(dto);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
 
-        ReponseSaveBuffetDTO response = buffetServiceImpl.saveBuffet(dto);
-        return ResponseEntity.ok(response);
+    @PatchMapping("/enable")
+    public ResponseEntity<Void> updateBuffetEnable(@Valid @RequestBody UpdateBuffetEnableDTO dto) {
+        buffetService.updateBuffetEnableStatus(dto.getCode(), dto.isEnable());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{code}/logo")
+    public ResponseEntity<String> uploadBuffetLogo(@PathVariable String code,
+            @RequestParam("file") MultipartFile file) {
+        String logoUrl = buffetService.uploadBuffetLogo(file, code);
+        return ResponseEntity.ok(logoUrl);
     }
 }

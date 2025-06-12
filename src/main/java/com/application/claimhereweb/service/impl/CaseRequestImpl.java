@@ -17,14 +17,11 @@ import org.springframework.stereotype.Service;
 import com.application.claimhereweb.exceptions.ResourceNotFoundException;
 import com.application.claimhereweb.model.entity.CaseRequest;
 import com.application.claimhereweb.model.entity.Customer;
-import com.application.claimhereweb.model.entity.LegalCase;
 import com.application.claimhereweb.model.entity.SimplePageResponse;
 import com.application.claimhereweb.model.entity.User;
-import com.application.claimhereweb.model.entity.enumEntity.CaseStatus;
 import com.application.claimhereweb.model.entity.enumEntity.CaseStatusRequest;
 import com.application.claimhereweb.model.repository.CaseRequestRepository;
 import com.application.claimhereweb.model.repository.CustomerRepository;
-import com.application.claimhereweb.model.repository.LegalCaseRepository;
 import com.application.claimhereweb.model.repository.UserRepository;
 import com.application.claimhereweb.service.ICaseRequestService;
 import com.application.claimhereweb.service.dto.ResponseCaseDTO;
@@ -47,9 +44,6 @@ public class CaseRequestImpl implements ICaseRequestService {
 
     @Autowired
     CustomerRepository customerRepository;
-
-    @Autowired
-    LegalCaseRepository legalCaseRepository;
 
     @Autowired
     UserRepository userRepository;
@@ -142,7 +136,6 @@ public class CaseRequestImpl implements ICaseRequestService {
 
         String newStatus = dto.getStatus_request();
         CaseStatusRequest caseStatusRequest;
-        LegalCase savedCase = null;
 
         try {
             caseStatusRequest = CaseStatusRequest.valueOf(newStatus.toUpperCase());
@@ -176,41 +169,6 @@ public class CaseRequestImpl implements ICaseRequestService {
             if (caseStatusRequest == CaseStatusRequest.APPROVED) {
                 logger.info("La solicitud ha sido APROBADA :D");
 
-                LegalCase legalCase = modelMapper.map(dto, LegalCase.class);
-                legalCase.setId(null);
-
-                /*
-                 * Long validate_role_lawyer = Optional.ofNullable(
-                 * legalCaseRepository.findLawyerIdByUserId(dto.getUser()))
-                 * .orElseThrow(
-                 * () -> new
-                 * ResourceNotFoundException("Usuario no tiene asignado el role de abogado :c"))
-                 * ;
-                 * 
-                 * legalCase.setUser(new User() {
-                 * {
-                 * setId(validate_role_lawyer);
-                 * }
-                 * });
-                 */
-
-                CaseRequest validateCaseRequest = caseRequestRepository.findCaseRequestById(dto.getId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Solicitud de caso no encontrada :c"));
-
-                legalCase.setCase_request(new CaseRequest() {
-                    {
-                        setId(validateCaseRequest.getId());
-                    }
-                });
-
-                legalCase.setTitle(validateCaseRequest.getTitle());
-                legalCase.setDescription(validateCaseRequest.getDescription());
-                legalCase.setType_case(validateCaseRequest.getType_case());
-                legalCase.setCustomer(validateCaseRequest.getCustomer());
-                legalCase.setStatus_case(CaseStatus.NEW);
-
-                savedCase = legalCaseRepository.save(legalCase);
-
             } else {
                 logger.info("La solicitud ha sido RECHAZADA :c");
                 throw new ResourceNotFoundException("La solicitud no puede continuar porque fue rechazada");
@@ -220,14 +178,7 @@ public class CaseRequestImpl implements ICaseRequestService {
             throw new ResourceNotFoundException("El estado ingresado en 'status_request' es inválido: " + newStatus);
         }
 
-        return responseCase(savedCase);
-    }
-
-    public ResponseCaseDTO responseCase(LegalCase caseModel) {
-        ResponseCaseDTO response = modelMapper.map(caseModel, ResponseCaseDTO.class);
-        response.setCustomer(caseModel.getCustomer().getUser().getName());
-        logger.info("Caso guardado con ID: {}", caseModel.getId());
-        return response;
+        return null;
     }
 
     public ResponseCaseRequestDTO saveCaseRequest(SaveCaseRequestDTO saveCaseDTO, Long id_customer) {

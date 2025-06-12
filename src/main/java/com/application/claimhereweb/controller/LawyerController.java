@@ -7,58 +7,57 @@ import java.time.format.DateTimeFormatter;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.application.claimhereweb.model.entity.SimplePageResponse;
-import com.application.claimhereweb.service.ICustomerService;
-import com.application.claimhereweb.service.dto.ResponseCustomerDTO;
-import com.application.claimhereweb.service.dto.ResponseSaveCustomerDTO;
-import com.application.claimhereweb.service.dto.SaveCustomerDTO;
-import com.application.claimhereweb.service.dto.UpdateCustomerDTO;
-
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.http.HttpStatus;
+import com.application.claimhereweb.service.ILawyerService;
+import com.application.claimhereweb.service.dto.ResponseLawyerDTO;
+import com.application.claimhereweb.service.dto.ResponseSaveLawyerDTO;
+import com.application.claimhereweb.service.dto.SaveLawyerDTO;
+import com.application.claimhereweb.service.dto.UpdateLawyerDTO;
 
 import jakarta.validation.Valid;
 
 @RestController
 @CrossOrigin(origins = "http://localhost:4200", originPatterns = "*")
-@RequestMapping("api/customer")
-public class CustomerController {
+@RequestMapping("api/lawyer")
+public class LawyerController {
 
     @Autowired
-    private ICustomerService customerService;
+    private ILawyerService lawyerService;
 
     @PostMapping("/save")
-    public ResponseEntity<ResponseSaveCustomerDTO> saveCustomer(@Valid @RequestBody SaveCustomerDTO dto) {
-        ResponseSaveCustomerDTO response = customerService.saveCustomer(dto);
+    public ResponseEntity<ResponseSaveLawyerDTO> saveLawyer(@Valid @RequestBody SaveLawyerDTO dto) {
+        ResponseSaveLawyerDTO response = lawyerService.saveLawyer(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PutMapping("/updateCustomer/{code}")
-    public ResponseEntity<ResponseSaveCustomerDTO> updateCustomer(
+    @PutMapping("/updateLawyer/{code}")
+    public ResponseEntity<ResponseSaveLawyerDTO> updateLawyer(
             @PathVariable String code,
-            @Valid @RequestBody UpdateCustomerDTO dto) {
+            @Valid @RequestBody UpdateLawyerDTO dto) {
 
-        ResponseSaveCustomerDTO response = customerService.updateCustomer(code, dto);
+        ResponseSaveLawyerDTO response = lawyerService.updateLawyer(code, dto);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping
-    public SimplePageResponse<ResponseCustomerDTO> listAll(Pageable pageable) {
-        return customerService.findAll(pageable);
+    public SimplePageResponse<ResponseLawyerDTO> listAll(Pageable pageable) {
+        return lawyerService.findAll(pageable);
     }
 
     @GetMapping("/listFilterFull")
-    public SimplePageResponse<ResponseCustomerDTO> listFilterFull(
+    public SimplePageResponse<ResponseLawyerDTO> listFilterFull(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate,
@@ -77,18 +76,18 @@ public class CustomerController {
             endTimestamp = Timestamp.valueOf(endLocalDate.atTime(LocalTime.MAX));
         }
 
-        return customerService.listFilterSearchAndDate(search, startTimestamp, endTimestamp, pageable);
+        return lawyerService.listFilterSearchAndDate(search, startTimestamp, endTimestamp, pageable);
     }
 
     @GetMapping("/listFilterSearch")
-    public SimplePageResponse<ResponseCustomerDTO> listFilterSearch(
+    public SimplePageResponse<ResponseLawyerDTO> listFilterSearch(
             @RequestParam(required = false) String search,
             Pageable pageable) {
-        return customerService.listFilterSearch(search, pageable);
+        return lawyerService.listFilterSearch(search, pageable);
     }
 
     @GetMapping("/listFilterCreationDate")
-    public SimplePageResponse<ResponseCustomerDTO> listFilterCreationDate(
+    public SimplePageResponse<ResponseLawyerDTO> listFilterCreationDate(
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate,
             Pageable pageable) {
@@ -102,9 +101,9 @@ public class CustomerController {
             Timestamp startTimestamp = Timestamp.valueOf(startLocalDate.atStartOfDay());
             Timestamp endTimestamp = Timestamp.valueOf(endLocalDate.atTime(LocalTime.MAX));
 
-            return customerService.findAllByCreationDate(startTimestamp, endTimestamp, pageable);
+            return lawyerService.findAllByCreationDate(startTimestamp, endTimestamp, pageable);
         }
 
-        return customerService.findAll(pageable);
+        return lawyerService.findAll(pageable);
     }
 }

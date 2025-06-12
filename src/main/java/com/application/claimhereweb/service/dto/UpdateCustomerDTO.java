@@ -3,8 +3,7 @@ package com.application.claimhereweb.service.dto;
 import lombok.Data;
 
 @Data
-public class SaveCustomerDTO {
-    private String buffet;
+public class UpdateCustomerDTO {
     private String email;
     private String name;
     private String password;
