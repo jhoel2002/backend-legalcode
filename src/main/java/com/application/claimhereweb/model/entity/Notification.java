@@ -29,6 +29,9 @@ public class Notification {
     @Column(name = "id", nullable = false)
     private Long id;
 
+    @Column(name = "code", nullable = false)
+    private String code;
+
     @Column(name = "type_message", nullable = false)
     @Enumerated(EnumType.STRING)
     private MessageType type_message;
@@ -40,4 +43,8 @@ public class Notification {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_customer", nullable = false)
     private Customer customer;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_email_template", nullable = false)
+    private EmailTemplates emailTemplates;
 }

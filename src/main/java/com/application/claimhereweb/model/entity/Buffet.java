@@ -27,10 +27,16 @@ public class Buffet {
     @Column(name = "code", nullable = false)
     private String code;
 
+    @Column(name = "encrypted", nullable = false)
+    private String encrypted;
+
     @Column(name = "creation")
     @CreationTimestamp
     private Timestamp creation;
 
     @Column(name = "enable")
     private boolean enable;
+
+    @Column(name = "img")
+    private String img;
 }

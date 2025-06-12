@@ -29,23 +29,20 @@ public class User {
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(name = "enable")
-    private boolean enable;
+    @Column(name = "code", nullable = false)
+    private String code;
+
+    @Column(name = "name", nullable = false)
+    private String name;
+
+    @Column(name = "last_name", nullable = false)
+    private String last_name;
 
     @Column(name = "email", unique = true, nullable = false)
     private String email;
 
     @Column(name = "password", nullable = false)
     private String password;
-
-    @Column(name = "name", nullable = false)
-    private String name;
-
-    @Column(name = "code", nullable = false)
-    private String code;
-
-    @Column(name = "last_name", nullable = false)
-    private String last_name;
 
     @Column(name = "phone", nullable = false)
     private String phone;
@@ -65,6 +62,9 @@ public class User {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_buffet", nullable = false)
     private Buffet buffet;
+
+    @Column(name = "enable")
+    private boolean enable;
 
     @PrePersist
     public void prePersist() {
