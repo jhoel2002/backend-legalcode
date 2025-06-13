@@ -28,6 +28,16 @@ ENV DB_PASSWORD=$DB_PASSWORD
 ENV AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
 ENV AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
 
+# ----------  AJUSTES DE MEMORIA JVM ----------
+# Limita heap a 512 MiB y arranca con 256 MiB.
+# MaxRAMPercentage garantiza que, si cambias el límite del contenedor,
+# la JVM nunca use más del 60 % de la RAM visible.
+ENV JAVA_TOOL_OPTIONS="-Xmx512m -Xms256m \
+                       -XX:+UseG1GC \
+                       -XX:MaxRAMPercentage=60 \
+                       -XX:InitialRAMPercentage=30 \
+                       -Dfile.encoding=UTF-8"
+
 # Copia el archivo JAR
 COPY ${JAR_FILE} /tmp/app.jar
 
@@ -38,4 +48,5 @@ RUN chown -R admin:devopsc /tmp
 USER admin
 
 # Ejecutamos el jar al iniciar el contenedor
-ENTRYPOINT ["java","-jar","/tmp/app.jar"]
+ENTRYPOINT ["sh", "-c", "java $JAVA_TOOL_OPTIONS -jar /tmp/app.jar"]
+
