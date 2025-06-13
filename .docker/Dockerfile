@@ -47,6 +47,6 @@ RUN chown -R admin:devopsc /tmp
 # Cambia al usuario 'admin'
 USER admin
 
-# Ejecutamos el jar al iniciar el contenedor
-ENTRYPOINT ["sh", "-c", "java $JAVA_TOOL_OPTIONS -jar /tmp/app.jar"]
+# Ejecuta el JAR (de forma limpia, sin sh -c)
+ENTRYPOINT ["java", "-jar", "/opt/app.jar"]
 
