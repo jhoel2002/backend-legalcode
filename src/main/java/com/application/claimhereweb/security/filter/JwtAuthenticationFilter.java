@@ -14,6 +14,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.application.claimhereweb.model.entity.User;
+import com.application.claimhereweb.security.CustomUserDetails;
 import com.fasterxml.jackson.core.exc.StreamReadException;
 import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -66,13 +67,15 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
             Authentication authResult) throws IOException, ServletException {
 
-        org.springframework.security.core.userdetails.User user = (org.springframework.security.core.userdetails.User) authResult.getPrincipal();
-        String email = user.getUsername();
-        Collection<? extends GrantedAuthority> roles = authResult.getAuthorities();
+        CustomUserDetails principal = (CustomUserDetails) authResult.getPrincipal();
+        String email = principal.getUsername();
+        String buffetCode = principal.getBuffetCode();
+        Collection<? extends GrantedAuthority> roles = principal.getAuthorities();
 
         Claims claims = Jwts.claims()
                 .add("authorities", new ObjectMapper().writeValueAsString(roles))
                 .add("email", email)
+                .add("buffet", buffetCode)
                 .build();
 
         String token = Jwts.builder()
@@ -88,6 +91,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         Map<String, String> body = new HashMap<>();
         body.put("token", token);
         body.put("username", email);
+        body.put("buffet", buffetCode);
         body.put("message", String.format("Hola %s has iniciado sesion con exito!", email));
 
         response.getWriter().write(new ObjectMapper().writeValueAsString(body));
