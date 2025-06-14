@@ -66,7 +66,7 @@ public class LawyerServiceImpl implements ILawyerService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Buffet no encontrado"));
 
         if (userRepository.existsByEmail(dto.getEmail())) {
-            throw new IllegalArgumentException("El correo ya está registrado");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "El correo ya está registrado");
         }
 
         User user = modelMapper.map(dto, User.class);
@@ -119,7 +119,7 @@ public class LawyerServiceImpl implements ILawyerService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Abogado no encontrado"));
 
         if (!user.getEmail().equals(dto.getEmail()) && userRepository.existsByEmail(dto.getEmail())) {
-            throw new IllegalArgumentException("El correo ya está registrado por otro usuario");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "El correo ya está registrado");
         }
 
         user.setEmail(dto.getEmail());

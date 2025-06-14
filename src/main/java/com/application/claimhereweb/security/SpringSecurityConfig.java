@@ -62,6 +62,12 @@ public class SpringSecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/lawyer/save").permitAll()
                 .requestMatchers(HttpMethod.PUT, "/api/lawyer/updateLawyer/{code}").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/lawyer/**").permitAll()
+                // ENDPOINTS DE CASE REQUEST
+                .requestMatchers(HttpMethod.POST, "/api/caseRequest/save/{codeCustomer}").permitAll()
+                .requestMatchers(HttpMethod.PATCH, "/api/casesRequest/updateStatus").permitAll()
+                .requestMatchers(HttpMethod.PATCH, "/api/casesRequest/assignLawyer").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/casesRequest/**").permitAll()
+                .requestMatchers(HttpMethod.PUT, "/api/casesRequest/updateInfo/{code}").permitAll()
 
                 .requestMatchers(HttpMethod.GET, "/api/users").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/factures/export-pdf").permitAll()

@@ -10,17 +10,17 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import com.application.claimhereweb.exceptions.ResourceNotFoundException;
 import com.application.claimhereweb.model.entity.ErrorEntity;
 
-
 @RestControllerAdvice
 public class HandlerExceptionController {
 
     @ExceptionHandler(NoHandlerFoundException.class)
-    public ResponseEntity<ErrorEntity> notFoundEx(NoHandlerFoundException e) { 
+    public ResponseEntity<ErrorEntity> notFoundEx(NoHandlerFoundException e) {
         ErrorEntity error = new ErrorEntity();
         error.setDate(new Date());
         error.setError("Api rest no encontrado");
@@ -44,7 +44,7 @@ public class HandlerExceptionController {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationException(MethodArgumentNotValidException ex) {
         BindingResult result = ex.getBindingResult();
-        
+
         Map<String, String> fieldErrors = new HashMap<>();
         result.getFieldErrors().forEach(err -> {
             fieldErrors.put(err.getField(), "El campo " + err.getField() + " " + err.getDefaultMessage());
@@ -60,13 +60,24 @@ public class HandlerExceptionController {
         return ResponseEntity.badRequest().body(errorResponse);
     }
 
-    // @ExceptionHandler({DataAccessException.class, ConstraintViolationException.class})
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ErrorEntity> handleDuplicateEmail(ResponseStatusException ex) {
+        ErrorEntity error = new ErrorEntity();
+        error.setError("Duplicate");
+        error.setMessage(ex.getMessage());
+        error.setStatus(HttpStatus.CONFLICT.value()); // 409
+        error.setDate(new Date());
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
+    // @ExceptionHandler({DataAccessException.class,
+    // ConstraintViolationException.class})
     // public ResponseEntity<?> handleCaseSaveException(DataAccessException ex) {
-    //     Map<String, Object> error = new HashMap<>();
-    //     error.put("date", new Date());
-    //     error.put("error", "Error al guardar la entidad");
-    //     error.put("message", ex.getMessage());
-    //     error.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
+    // Map<String, Object> error = new HashMap<>();
+    // error.put("date", new Date());
+    // error.put("error", "Error al guardar la entidad");
+    // error.put("message", ex.getMessage());
+    // error.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());
 
     // return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     // }

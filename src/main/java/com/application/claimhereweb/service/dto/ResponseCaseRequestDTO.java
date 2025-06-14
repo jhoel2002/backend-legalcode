@@ -6,10 +6,12 @@ import lombok.Data;
 public class ResponseCaseRequestDTO {
 
     private Long id;
+    private String code;
     private String title;
     private String description;
     private String type_case;
     private String status_request;
     private String customer;
-    private String application_date;
+    private String creation;
+    private String buffet;
 }

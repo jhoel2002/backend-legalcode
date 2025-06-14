@@ -70,7 +70,7 @@ public class CustomerServiceImpl implements ICustomerService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Buffet no encontrado"));
 
         if (userRepository.existsByEmail(dto.getEmail())) {
-            throw new IllegalArgumentException("El correo ya está registrado");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "El correo ya está registrado");
         }
 
         User user = modelMapper.map(dto, User.class);
@@ -95,14 +95,12 @@ public class CustomerServiceImpl implements ICustomerService {
         response.setBuffet(buffet.getName());
 
         String logo = buffet.getImg();
-        String nombre_buffet = buffet.getName();
         String nombre_customer = user.getName() + " " + user.getLast_name();
         String code_user = user.getCode();
         String email = user.getEmail();
 
         Map<String, Object> variables = Map.of(
                 "logo_buffet", logo,
-                "nombre_buffet", nombre_buffet,
                 "nombre_usuario", nombre_customer,
                 "codigo_usuario", code_user,
                 "email_usuario", email);
@@ -122,7 +120,7 @@ public class CustomerServiceImpl implements ICustomerService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cliente no encontrado"));
 
         if (!user.getEmail().equals(dto.getEmail()) && userRepository.existsByEmail(dto.getEmail())) {
-            throw new IllegalArgumentException("El correo ya está registrado por otro usuario");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "El correo ya está registrado");
         }
 
         user.setEmail(dto.getEmail());
