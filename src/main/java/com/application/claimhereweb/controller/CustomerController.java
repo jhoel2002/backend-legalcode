@@ -52,12 +52,13 @@ public class CustomerController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping
-    public SimplePageResponse<ResponseCustomerDTO> listAll(Pageable pageable) {
-        return customerService.findAll(pageable);
+    @GetMapping("/{codeBuffet}")
+    public SimplePageResponse<ResponseCustomerDTO> listAll(Pageable pageable,
+            @PathVariable String codeBuffet) {
+        return customerService.findAll(pageable, codeBuffet);
     }
 
-    @GetMapping("/listFilterFull")
+    @GetMapping("/listFilterFull/{codeBuffet}")
     public SimplePageResponse<ResponseCustomerDTO> listFilterFull(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String startDate,
@@ -80,31 +81,37 @@ public class CustomerController {
         return customerService.listFilterSearchAndDate(search, startTimestamp, endTimestamp, pageable);
     }
 
-    @GetMapping("/listFilterSearch")
+    @GetMapping("/listFilterSearch/{codeBuffet}")
     public SimplePageResponse<ResponseCustomerDTO> listFilterSearch(
             @RequestParam(required = false) String search,
             Pageable pageable) {
         return customerService.listFilterSearch(search, pageable);
     }
 
-    @GetMapping("/listFilterCreationDate")
-    public SimplePageResponse<ResponseCustomerDTO> listFilterCreationDate(
-            @RequestParam(required = false) String startDate,
-            @RequestParam(required = false) String endDate,
-            Pageable pageable) {
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-
-        if (startDate != null && endDate != null) {
-            LocalDate startLocalDate = LocalDate.parse(startDate, formatter);
-            LocalDate endLocalDate = LocalDate.parse(endDate, formatter);
-
-            Timestamp startTimestamp = Timestamp.valueOf(startLocalDate.atStartOfDay());
-            Timestamp endTimestamp = Timestamp.valueOf(endLocalDate.atTime(LocalTime.MAX));
-
-            return customerService.findAllByCreationDate(startTimestamp, endTimestamp, pageable);
-        }
-
-        return customerService.findAll(pageable);
-    }
+    /*
+     * @GetMapping("/listFilterCreationDate/{codeBuffet}")
+     * public SimplePageResponse<ResponseCustomerDTO> listFilterCreationDate(
+     * 
+     * @RequestParam(required = false) String startDate,
+     * 
+     * @RequestParam(required = false) String endDate,
+     * Pageable pageable) {
+     * 
+     * DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+     * 
+     * if (startDate != null && endDate != null) {
+     * LocalDate startLocalDate = LocalDate.parse(startDate, formatter);
+     * LocalDate endLocalDate = LocalDate.parse(endDate, formatter);
+     * 
+     * Timestamp startTimestamp = Timestamp.valueOf(startLocalDate.atStartOfDay());
+     * Timestamp endTimestamp =
+     * Timestamp.valueOf(endLocalDate.atTime(LocalTime.MAX));
+     * 
+     * return customerService.findAllByCreationDate(startTimestamp, endTimestamp,
+     * pageable);
+     * }
+     * 
+     * return customerService.findAll(pageable);
+     * }
+     */
 }

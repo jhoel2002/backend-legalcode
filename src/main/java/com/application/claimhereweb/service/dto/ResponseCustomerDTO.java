@@ -12,7 +12,7 @@ public class ResponseCustomerDTO {
     private String email;
     private String phone;
     private String address;
-    private Boolean enabled;
+    private Boolean enable;
     private String creation;
     private String buffet;
 }

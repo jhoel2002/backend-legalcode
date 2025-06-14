@@ -18,9 +18,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.data.domain.Pageable;
 
 import com.application.claimhereweb.model.entity.SimplePageResponse;
+import com.application.claimhereweb.model.entity.enumEntity.CaseType;
 import com.application.claimhereweb.service.ICaseRequestService;
 import com.application.claimhereweb.service.dto.AssignLawyerDTO;
 import com.application.claimhereweb.service.dto.ResponseCaseRequestDTO;
@@ -38,11 +40,37 @@ public class CaseRequestController {
     @Autowired
     private ICaseRequestService caseRequestService;
 
-    @PostMapping("/save/{codeCustomer}")
-    public ResponseEntity<ResponseCaseRequestDTO> save(
+    @PostMapping("/saveEvidenceMassive/{codeCustomer}")
+    public ResponseEntity<ResponseCaseRequestDTO> saveCaseWithEvidence(
             @PathVariable("codeCustomer") String codeCustomer,
-            @Valid @RequestBody SaveCaseRequestDTO dto) {
-        ResponseCaseRequestDTO response = caseRequestService.save(dto, codeCustomer);
+            @RequestParam("files") MultipartFile[] files,
+            @RequestParam("title") String title,
+            @RequestParam("description") String description,
+            @RequestParam("type_case") CaseType typeCase) {
+
+        SaveCaseRequestDTO dto = new SaveCaseRequestDTO();
+        dto.setTitle(title);
+        dto.setDescription(description);
+        dto.setType_case(typeCase);
+
+        ResponseCaseRequestDTO response = caseRequestService.saveEvidenceMassive(dto, codeCustomer, files);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
+    @PostMapping("/save/{codeCustomer}")
+    public ResponseEntity<ResponseCaseRequestDTO> saveCaseWithEvidence(
+            @PathVariable("codeCustomer") String codeCustomer,
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("title") String title,
+            @RequestParam("description") String description,
+            @RequestParam("type_case") String typeCase) {
+
+        SaveCaseRequestDTO dto = new SaveCaseRequestDTO();
+        dto.setTitle(title);
+        dto.setDescription(description);
+        dto.setType_case(CaseType.valueOf(typeCase));
+
+        ResponseCaseRequestDTO response = caseRequestService.save(dto, codeCustomer, file);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
@@ -67,30 +95,34 @@ public class CaseRequestController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping
-    public SimplePageResponse<ResponseCaseRequestDTO> listAll(Pageable pageable) {
-        return caseRequestService.findAll(pageable);
+    @GetMapping("/{codeBuffet}")
+    public SimplePageResponse<ResponseCaseRequestDTO> listAll(Pageable pageable,
+            @PathVariable String codeBuffet) {
+        return caseRequestService.findAll(pageable, codeBuffet);
     }
 
-    @GetMapping("/listFilterStatus")
+    @GetMapping("/listFilterStatus/{codeBuffet}")
     public SimplePageResponse<ResponseCaseRequestDTO> listFilterStatus(
             @RequestParam(required = false) String status,
-            Pageable pageable) {
-        return caseRequestService.listFilterStatus(status, pageable);
+            Pageable pageable,
+            @PathVariable String codeBuffet) {
+        return caseRequestService.listFilterStatus(status, pageable, codeBuffet);
     }
 
-    @GetMapping("/listFilterSearch")
+    @GetMapping("/listFilterSearch/{codeBuffet}")
     public SimplePageResponse<ResponseCaseRequestDTO> listerFilterSearch(
             @RequestParam(required = false) String search,
-            Pageable pageable) {
-        return caseRequestService.listFilterSearch(search, pageable);
+            Pageable pageable,
+            @PathVariable String codeBuffet) {
+        return caseRequestService.listFilterSearch(search, pageable, codeBuffet);
     }
 
-    @GetMapping("/listFilterApplicationDate")
+    @GetMapping("/listFilterApplicationDate/{codeBuffet}")
     public SimplePageResponse<ResponseCaseRequestDTO> listFilterApplicationDate(
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate,
-            Pageable pageable) {
+            Pageable pageable,
+            @PathVariable String codeBuffet) {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
@@ -101,19 +133,21 @@ public class CaseRequestController {
             Timestamp startTimestamp = Timestamp.valueOf(startLocalDate.atStartOfDay());
             Timestamp endTimestamp = Timestamp.valueOf(endLocalDate.atTime(LocalTime.MAX));
 
-            return caseRequestService.findAllbyApplicationDate(startTimestamp, endTimestamp, pageable);
+            return caseRequestService.findAllbyApplicationDate(startTimestamp,
+                    endTimestamp, pageable, codeBuffet);
         }
 
-        return caseRequestService.findAll(pageable);
+        return caseRequestService.findAll(pageable, codeBuffet);
     }
 
-    @GetMapping("/listFilterFull")
+    @GetMapping("/listFilterFull/{codeBuffet}")
     public SimplePageResponse<ResponseCaseRequestDTO> listFilterFull(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate,
-            Pageable pageable) {
+            Pageable pageable,
+            @PathVariable String codeBuffet) {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
         Timestamp startTimestamp = null;
@@ -125,8 +159,9 @@ public class CaseRequestController {
             startTimestamp = Timestamp.valueOf(startLocalDate.atStartOfDay());
             endTimestamp = Timestamp.valueOf(endLocalDate.atTime(LocalTime.MAX));
 
-            return caseRequestService.listFilterFull(search, startTimestamp, endTimestamp, status, pageable);
+            return caseRequestService.listFilterFull(search, startTimestamp,
+                    endTimestamp, status, pageable, codeBuffet);
         }
-        return caseRequestService.findAll(pageable);
+        return caseRequestService.findAll(pageable, codeBuffet);
     }
 }

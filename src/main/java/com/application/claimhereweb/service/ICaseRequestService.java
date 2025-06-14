@@ -6,6 +6,7 @@ import java.sql.Timestamp;
 
 //import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.application.claimhereweb.model.entity.SimplePageResponse;
 import com.application.claimhereweb.service.dto.AssignLawyerDTO;
@@ -16,7 +17,10 @@ import com.application.claimhereweb.service.dto.UpdateStatusCaseRequestDTO;
 
 public interface ICaseRequestService {
 
-        public ResponseCaseRequestDTO save(SaveCaseRequestDTO dto, String codeCustomer);
+        public ResponseCaseRequestDTO saveEvidenceMassive(SaveCaseRequestDTO dto, String codeCustomer,
+                        MultipartFile[] files);
+
+        public ResponseCaseRequestDTO save(SaveCaseRequestDTO dto, String codeCustomer, MultipartFile file);
 
         public void updateStatusCaseRequest(UpdateStatusCaseRequestDTO dto);
 
@@ -24,20 +28,24 @@ public interface ICaseRequestService {
 
         public void assignLawyerCase(AssignLawyerDTO dto);
 
-        public SimplePageResponse<ResponseCaseRequestDTO> listFilterStatus(String status, Pageable pageable);
+        public SimplePageResponse<ResponseCaseRequestDTO> listFilterStatus(String status, Pageable pageable,
+                        String codeBuffet);
 
-        public SimplePageResponse<ResponseCaseRequestDTO> findAll(Pageable pageable);
+        public SimplePageResponse<ResponseCaseRequestDTO> findAll(Pageable pageable, String code);
 
-        public SimplePageResponse<ResponseCaseRequestDTO> listFilterSearch(String search, Pageable pageable);
+        public SimplePageResponse<ResponseCaseRequestDTO> listFilterSearch(String search, Pageable pageable,
+                        String codeBuffet);
 
         public SimplePageResponse<ResponseCaseRequestDTO> findAllbyApplicationDate(Timestamp startDate,
                         Timestamp endDate,
-                        Pageable pageable);
+                        Pageable pageable,
+                        String codeBuffet);
 
         public SimplePageResponse<ResponseCaseRequestDTO> listFilterFull(
                         String search,
                         Timestamp startDate,
                         Timestamp endDate,
                         String status,
-                        Pageable pageable);
+                        Pageable pageable,
+                        String codeBuffet);
 }

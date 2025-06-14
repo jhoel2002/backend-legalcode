@@ -15,4 +15,6 @@ public interface IBuffetService {
 
     // Metodo para cargar en el S3 y actualizar en la BD el logo del buffet
     public String uploadBuffetLogo(MultipartFile file, String buffetCode);
+
+    public ReponseSaveBuffetDTO saveBuffetWithLogo(SaveBuffetDTO dto, MultipartFile file);
 }

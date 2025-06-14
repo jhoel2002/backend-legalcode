@@ -20,7 +20,7 @@ public interface ICustomerService {
 
         public SimplePageResponse<ResponseCustomerDTO> listFilterSearch(String search, Pageable pageable);
 
-        public SimplePageResponse<ResponseCustomerDTO> findAll(Pageable pageable);
+        public SimplePageResponse<ResponseCustomerDTO> findAll(Pageable pageable, String codeBuffet);
 
         public SimplePageResponse<ResponseCustomerDTO> findAllByCreationDate(Timestamp starDate, Timestamp endDate,
                         Pageable pageable);
