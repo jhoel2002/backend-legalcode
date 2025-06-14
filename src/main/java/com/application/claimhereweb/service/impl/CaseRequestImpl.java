@@ -98,6 +98,17 @@ public class CaseRequestImpl implements ICaseRequestService {
                 logger.info("Listando solicitudes de casos. Filtros -> search: {}, startDate: {}, endDate: {}, status: {}",
                                 search, startDate, endDate, status);
 
+                if (status.equals("PENDING")) {
+                        Page<CaseRequest> pagePending = caseRequestRepository.findByFiltersPending(
+                                        search != null && !search.trim().isEmpty() ? search.trim() : null,
+                                        startDate,
+                                        endDate,
+                                        codeBuffet,
+                                        pageable);
+                        Page<ResponseCaseRequestDTO> dtoPagePending = pagePending.map(this::responseFullCaseRequest);
+                        return new SimplePageResponse<>(dtoPagePending);
+                }
+
                 Page<CaseRequest> page = caseRequestRepository.findByFilters(
                                 search != null && !search.trim().isEmpty() ? search.trim() : null,
                                 startDate,
@@ -149,9 +160,20 @@ public class CaseRequestImpl implements ICaseRequestService {
                         String status) {
                 logger.info("Listando clientes registrados entre {} y {}", startDate, endDate);
 
+                if (status.equals("PENDING")) {
+                        Page<CaseRequest> pagePending = caseRequestRepository
+                                        .findCaseRequestByBuffetCodeAndCreationBetweenPending(codeBuffet,
+                                                        startDate,
+                                                        endDate,
+                                                        pageable);
+                        Page<ResponseCaseRequestDTO> dtoPagePending = pagePending.map(this::responseFullCaseRequest);
+                        return new SimplePageResponse<>(dtoPagePending);
+                }
+
                 Page<CaseRequest> page = caseRequestRepository.findCaseRequestByBuffetCodeAndCreationBetween(codeBuffet,
                                 startDate,
                                 endDate,
+                                status,
                                 pageable);
                 Page<ResponseCaseRequestDTO> dtoPage = page.map(this::responseFullCaseRequest);
                 return new SimplePageResponse<>(dtoPage);
@@ -361,7 +383,8 @@ public class CaseRequestImpl implements ICaseRequestService {
                                         String originalName = Optional.ofNullable(file.getOriginalFilename())
                                                         .orElse("archivo_sin_nombre");
                                         String newFileName = timestamp + "_" + originalName;
-                                        String s3Key = "buffets/" + buffet.getCode() + "/EVIDENCE/" + newFileName;
+                                        String s3Key = "buffets/" + buffet.getCode() + "/EVIDENCE/"
+                                                        + caseRequest.getCode() + "/" + newFileName;
 
                                         ObjectMetadata metadata = new ObjectMetadata();
                                         metadata.setContentLength(file.getSize());
