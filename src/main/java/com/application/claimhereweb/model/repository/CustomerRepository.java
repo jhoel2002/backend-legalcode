@@ -35,6 +35,14 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
       @Query("""
                       SELECT c FROM Customer c
                       JOIN c.user u
+                      JOIN u.buffet b
+                      WHERE b.code = :codeBuffet
+                  """)
+      Page<Customer> findByBuffetCode(@Param("codeBuffet") String codeBuffet, Pageable pageable);
+
+      @Query("""
+                      SELECT c FROM Customer c
+                      JOIN c.user u
                       WHERE u.creation BETWEEN :startDate AND :endDate
                   """)
       Page<Customer> findCustomersByUserCreationDateBetween(

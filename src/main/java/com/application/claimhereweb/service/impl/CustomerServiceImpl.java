@@ -154,9 +154,9 @@ public class CustomerServiceImpl implements ICustomerService {
     }
 
     // Listado completo de clientes
-    public SimplePageResponse<ResponseCustomerDTO> findAll(Pageable pageable) {
+    public SimplePageResponse<ResponseCustomerDTO> findAll(Pageable pageable, String codeBuffet) {
         logger.info("Listando clientes registrados");
-        Page<Customer> page = customerRepository.findAll(pageable);
+        Page<Customer> page = customerRepository.findByBuffetCode(codeBuffet, pageable);
         Page<ResponseCustomerDTO> dtoPage = page.map(this::responseFullCustomer);
         return new SimplePageResponse<>(dtoPage);
     }
@@ -224,7 +224,7 @@ public class CustomerServiceImpl implements ICustomerService {
         responseCustomerDTO.setCode(customer.getUser().getCode());
         responseCustomerDTO.setPhone(customer.getUser().getPhone());
         responseCustomerDTO.setAddress(customer.getUser().getAddress());
-        responseCustomerDTO.setEnabled(customer.getUser().isEnable());
+        responseCustomerDTO.setEnable(customer.getUser().isEnable());
         responseCustomerDTO.setBuffet(customer.getUser().getBuffet().getName());
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String formattedDate = customer.getUser().getCreation().toLocalDateTime().format(formatter);

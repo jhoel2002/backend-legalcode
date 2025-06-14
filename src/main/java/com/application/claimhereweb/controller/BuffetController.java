@@ -45,4 +45,18 @@ public class BuffetController {
         String logoUrl = buffetService.uploadBuffetLogo(file, code);
         return ResponseEntity.ok(logoUrl);
     }
+
+    @PostMapping("/saveWithLogo")
+    public ResponseEntity<ReponseSaveBuffetDTO> registerBuffetWithLogo(
+            @RequestParam("name") String name,
+            @RequestParam("enable") boolean enable,
+            @RequestParam("file") MultipartFile logoFile) {
+
+        SaveBuffetDTO dto = new SaveBuffetDTO();
+        dto.setName(name);
+        dto.setEnable(enable);
+
+        ReponseSaveBuffetDTO response = buffetService.saveBuffetWithLogo(dto, logoFile);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
 }

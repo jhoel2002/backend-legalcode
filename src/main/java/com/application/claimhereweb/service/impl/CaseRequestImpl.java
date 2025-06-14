@@ -1,8 +1,11 @@
 package com.application.claimhereweb.service.impl;
 
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 //import java.util.List;
 //import java.util.stream.Collectors;
 import java.util.Random;
@@ -11,19 +14,26 @@ import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.application.claimhereweb.model.entity.Buffet;
 import com.application.claimhereweb.model.entity.CaseRequest;
 import com.application.claimhereweb.model.entity.Customer;
+import com.application.claimhereweb.model.entity.Document;
 import com.application.claimhereweb.model.entity.Lawyer;
 import com.application.claimhereweb.model.entity.SimplePageResponse;
 import com.application.claimhereweb.model.entity.User;
 import com.application.claimhereweb.model.entity.enumEntity.CaseStatusRequest;
 import com.application.claimhereweb.model.entity.enumEntity.CaseType;
+import com.application.claimhereweb.model.entity.enumEntity.DocumentType;
 import com.application.claimhereweb.model.repository.BuffetRepository;
 import com.application.claimhereweb.model.repository.CaseRequestRepository;
 import com.application.claimhereweb.model.repository.CustomerRepository;
+import com.application.claimhereweb.model.repository.DocumentRepository;
 import com.application.claimhereweb.model.repository.LawyerRepository;
 import com.application.claimhereweb.model.repository.UserRepository;
 import com.application.claimhereweb.service.ICaseRequestService;
@@ -37,6 +47,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -63,7 +74,16 @@ public class CaseRequestImpl implements ICaseRequestService {
         private ModelMapper modelMapper;
 
         @Autowired
+        DocumentRepository documentRepository;
+
+        @Autowired
         EmailService emailService;
+
+        @Value("${aws.s3.bucket}")
+        private String bucketName;
+
+        @Autowired
+        private AmazonS3 amazonS3;
 
         @Override
         @Transactional
@@ -72,7 +92,8 @@ public class CaseRequestImpl implements ICaseRequestService {
                         Timestamp startDate,
                         Timestamp endDate,
                         String status,
-                        Pageable pageable) {
+                        Pageable pageable,
+                        String codeBuffet) {
 
                 logger.info("Listando solicitudes de casos. Filtros -> search: {}, startDate: {}, endDate: {}, status: {}",
                                 search, startDate, endDate, status);
@@ -84,6 +105,7 @@ public class CaseRequestImpl implements ICaseRequestService {
                                 status != null && !status.trim().isEmpty()
                                                 ? CaseStatusRequest.valueOf(status.toUpperCase())
                                                 : null,
+                                codeBuffet,
                                 pageable);
 
                 Page<ResponseCaseRequestDTO> dtoPage = page.map(this::responseFullCaseRequest);
@@ -92,12 +114,14 @@ public class CaseRequestImpl implements ICaseRequestService {
 
         @Override
         @Transactional
-        public SimplePageResponse<ResponseCaseRequestDTO> listFilterSearch(String search, Pageable pageable) {
+        public SimplePageResponse<ResponseCaseRequestDTO> listFilterSearch(String search, Pageable pageable,
+                        String codeBuffet) {
                 logger.info("Listando solicitudes de casos registrados. Filtro: {}", search);
 
                 Page<CaseRequest> page = (search == null || search.trim().isEmpty())
-                                ? caseRequestRepository.findAll(pageable)
-                                : caseRequestRepository.searchCaseRequest(search.trim(), pageable);
+                                ? caseRequestRepository.findAllByBuffetCode(codeBuffet, pageable)
+                                : caseRequestRepository.searchCaseRequestByBuffetCode(search.trim(), codeBuffet,
+                                                pageable);
 
                 Page<ResponseCaseRequestDTO> dtoPage = page.map(this::responseFullCaseRequest);
                 return new SimplePageResponse<>(dtoPage);
@@ -107,10 +131,12 @@ public class CaseRequestImpl implements ICaseRequestService {
         @Transactional
         public SimplePageResponse<ResponseCaseRequestDTO> findAllbyApplicationDate(Timestamp startDate,
                         Timestamp endDate,
-                        Pageable pageable) {
+                        Pageable pageable,
+                        String codeBuffet) {
                 logger.info("Listando clientes registrados entre {} y {}", startDate, endDate);
 
-                Page<CaseRequest> page = caseRequestRepository.findCaseRequestByApplicationDateBetween(startDate,
+                Page<CaseRequest> page = caseRequestRepository.findCaseRequestByBuffetCodeAndCreationBetween(codeBuffet,
+                                startDate,
                                 endDate,
                                 pageable);
                 Page<ResponseCaseRequestDTO> dtoPage = page.map(this::responseFullCaseRequest);
@@ -119,9 +145,10 @@ public class CaseRequestImpl implements ICaseRequestService {
 
         @Override
         @Transactional
-        public SimplePageResponse<ResponseCaseRequestDTO> listFilterStatus(String status, Pageable pageable) {
-                Page<CaseRequest> caseRequests = caseRequestRepository.findAllByStatusRequest(
-                                CaseStatusRequest.valueOf(status.toUpperCase()), pageable);
+        public SimplePageResponse<ResponseCaseRequestDTO> listFilterStatus(String status, Pageable pageable,
+                        String codeBuffet) {
+                Page<CaseRequest> caseRequests = caseRequestRepository.findAllByStatusRequestAndBuffetCode(
+                                CaseStatusRequest.valueOf(status.toUpperCase()), codeBuffet, pageable);
 
                 Page<ResponseCaseRequestDTO> dtoPage = caseRequests.map(this::responseFullCaseRequest);
                 return new SimplePageResponse<>(dtoPage);
@@ -129,8 +156,8 @@ public class CaseRequestImpl implements ICaseRequestService {
 
         @Override
         @Transactional
-        public SimplePageResponse<ResponseCaseRequestDTO> findAll(Pageable pageable) {
-                Page<CaseRequest> page = caseRequestRepository.findAll(pageable);
+        public SimplePageResponse<ResponseCaseRequestDTO> findAll(Pageable pageable, String code) {
+                Page<CaseRequest> page = caseRequestRepository.findAllByBuffetCode(code, pageable);
                 Page<ResponseCaseRequestDTO> dtoPage = page.map(this::responseFullCaseRequest);
                 return new SimplePageResponse<>(dtoPage);
         }
@@ -260,15 +287,17 @@ public class CaseRequestImpl implements ICaseRequestService {
 
         @Override
         @Transactional
-        public ResponseCaseRequestDTO save(SaveCaseRequestDTO dto, String codeCustomer) {
-                logger.info("Registrando solicitado de registro de caso: {}", dto.getTitle());
+        public ResponseCaseRequestDTO saveEvidenceMassive(SaveCaseRequestDTO dto, String codeCustomer,
+                        MultipartFile[] files) {
+                logger.info("Registrando solicitud de caso: {}", dto.getTitle());
 
                 User user = userRepository.findByCode(codeCustomer)
                                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                                                 "Cliente no encontrado"));
 
                 Customer customer = customerRepository.findByUserId(user.getId())
-                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "NO encontrado"));
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                                "Cliente no asociado"));
 
                 Buffet buffet = buffetRepository.findById(user.getBuffet().getId())
                                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -279,30 +308,165 @@ public class CaseRequestImpl implements ICaseRequestService {
                 caseRequest.setCustomer(customer);
                 caseRequest.setBuffet(buffet);
 
-                CaseRequest saved = caseRequestRepository.save(caseRequest);
+                CaseRequest savedCase = caseRequestRepository.save(caseRequest);
 
-                ResponseCaseRequestDTO response = modelMapper.map(saved, ResponseCaseRequestDTO.class);
+                ResponseCaseRequestDTO response = modelMapper.map(savedCase, ResponseCaseRequestDTO.class);
                 response.setCustomer(user.getName() + " " + user.getLast_name());
                 response.setBuffet(buffet.getName());
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-                String formattedDate = caseRequest.getCreation().toLocalDateTime().format(formatter);
-                response.setCreation(formattedDate);
+                response.setCreation(savedCase.getCreation().toLocalDateTime()
+                                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
 
-                String logo = buffet.getImg();
-                String nombre_customer = user.getName() + " " + user.getLast_name();
-                String email = user.getEmail();
-                String code_user = user.getCode();
-                String solicitud = caseRequest.getCode();
+                if (files != null && files.length > 0) {
+                        List<String> allowedMimeTypes = List.of(
+                                        "image/png", "image/jpeg", "image/jpg",
+                                        "application/pdf", "text/plain", "text/csv",
+                                        "application/msword",
+                                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                        "application/vnd.ms-excel",
+                                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
-                Map<String, Object> variables = Map.of(
-                                "logo_buffet", logo,
-                                "nombre_usuario", nombre_customer,
-                                "codigo_usuario", code_user,
-                                "codigo_solicitud", solicitud);
+                        for (MultipartFile file : files) {
+                                if (file == null || file.isEmpty())
+                                        continue;
 
-                String correoDestino = email;
-                emailService.sendEmailUsingTemplate("confirmacion_registro_caso", variables, correoDestino);
-                logger.info("Correo enviado a: " + correoDestino);
+                                String mimeType = file.getContentType();
+                                if (mimeType == null || !allowedMimeTypes.contains(mimeType)) {
+                                        throw new IllegalArgumentException("Tipo de archivo no permitido: " + mimeType);
+                                }
+
+                                try {
+                                        String timestamp = String.valueOf(System.currentTimeMillis());
+                                        String originalName = Optional.ofNullable(file.getOriginalFilename())
+                                                        .orElse("archivo_sin_nombre");
+                                        String newFileName = timestamp + "_" + originalName;
+                                        String s3Key = "buffets/" + buffet.getCode() + "/EVIDENCE/" + newFileName;
+
+                                        ObjectMetadata metadata = new ObjectMetadata();
+                                        metadata.setContentLength(file.getSize());
+                                        metadata.setContentType(mimeType);
+
+                                        amazonS3.putObject(new PutObjectRequest(bucketName, s3Key,
+                                                        file.getInputStream(), metadata));
+                                        logger.info("Archivo cargado correctamente a S3 con clave {}", s3Key);
+
+                                        Document document = new Document();
+                                        document.setCode(generateUniqueCodeDocument());
+                                        document.setType_document(DocumentType.EVIDENCE);
+                                        document.setName(originalName);
+                                        document.setUrl(s3Key);
+                                        document.setBuffet(buffet);
+                                        document.setCase_request(savedCase);
+
+                                        documentRepository.save(document);
+
+                                } catch (IOException e) {
+                                        logger.error("Error al subir archivo a S3: {}", e.getMessage(), e);
+                                        throw new RuntimeException("Fallo al subir la evidencia a S3", e);
+                                }
+                        }
+                }
+
+                try {
+                        Map<String, Object> variables = Map.of(
+                                        "logo_buffet", buffet.getImg(),
+                                        "nombre_usuario", user.getName() + " " + user.getLast_name(),
+                                        "codigo_usuario", user.getCode(),
+                                        "codigo_solicitud", savedCase.getCode());
+                        emailService.sendEmailUsingTemplate("confirmacion_registro_caso", variables, user.getEmail());
+                        logger.info("Correo enviado a: {}", user.getEmail());
+                } catch (Exception e) {
+                        logger.warn("No se pudo enviar el correo a {}: {}", user.getEmail(), e.getMessage());
+                }
+
+                return response;
+        }
+
+        @Override
+        @Transactional
+        public ResponseCaseRequestDTO save(SaveCaseRequestDTO dto, String codeCustomer, MultipartFile file) {
+                logger.info("Registrando solicitud de caso: {}", dto.getTitle());
+
+                User user = userRepository.findByCode(codeCustomer)
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                                "Cliente no encontrado"));
+
+                Customer customer = customerRepository.findByUserId(user.getId())
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                                "Cliente no asociado"));
+
+                Buffet buffet = buffetRepository.findById(user.getBuffet().getId())
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                                "Buffet no encontrado"));
+
+                CaseRequest caseRequest = modelMapper.map(dto, CaseRequest.class);
+                caseRequest.setCode(generateUniqueCode());
+                caseRequest.setCustomer(customer);
+                caseRequest.setBuffet(buffet);
+
+                CaseRequest savedCase = caseRequestRepository.save(caseRequest);
+
+                ResponseCaseRequestDTO response = modelMapper.map(savedCase, ResponseCaseRequestDTO.class);
+                response.setCustomer(user.getName() + " " + user.getLast_name());
+                response.setBuffet(buffet.getName());
+                response.setCreation(savedCase.getCreation().toLocalDateTime()
+                                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+
+                if (file != null && !file.isEmpty()) {
+                        String mimeType = file.getContentType();
+                        List<String> allowedMimeTypes = List.of(
+                                        "image/png", "image/jpeg", "image/jpg",
+                                        "application/pdf", "text/plain", "text/csv",
+                                        "application/msword",
+                                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                        "application/vnd.ms-excel",
+                                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
+                        if (mimeType == null || !allowedMimeTypes.contains(mimeType)) {
+                                throw new IllegalArgumentException("Tipo de archivo no permitido: " + mimeType);
+                        }
+
+                        try {
+                                String timestamp = String.valueOf(System.currentTimeMillis());
+                                String originalName = Optional.ofNullable(file.getOriginalFilename())
+                                                .orElse("archivo_sin_nombre");
+                                String newFileName = timestamp + "_" + originalName;
+                                String s3Key = "buffets/" + buffet.getCode() + "/EVIDENCE/" + newFileName;
+
+                                ObjectMetadata metadata = new ObjectMetadata();
+                                metadata.setContentLength(file.getSize());
+                                metadata.setContentType(mimeType);
+
+                                amazonS3.putObject(new PutObjectRequest(bucketName, s3Key, file.getInputStream(),
+                                                metadata));
+                                logger.info("Archivo cargado correctamente a S3 con clave {}", s3Key);
+
+                                Document document = new Document();
+                                document.setCode(generateUniqueCodeDocument());
+                                document.setType_document(DocumentType.EVIDENCE);
+                                document.setName(originalName);
+                                document.setUrl(s3Key);
+                                document.setBuffet(buffet);
+                                document.setCase_request(savedCase);
+
+                                documentRepository.save(document);
+
+                        } catch (IOException e) {
+                                logger.error("Error al subir archivo a S3: {}", e.getMessage(), e);
+                                throw new RuntimeException("Fallo al subir la evidencia a S3", e);
+                        }
+                }
+
+                try {
+                        Map<String, Object> variables = Map.of(
+                                        "logo_buffet", buffet.getImg(),
+                                        "nombre_usuario", user.getName() + " " + user.getLast_name(),
+                                        "codigo_usuario", user.getCode(),
+                                        "codigo_solicitud", savedCase.getCode());
+                        emailService.sendEmailUsingTemplate("confirmacion_registro_caso", variables, user.getEmail());
+                        logger.info("Correo enviado a: {}", user.getEmail());
+                } catch (Exception e) {
+                        logger.warn("No se pudo enviar el correo a {}: {}", user.getEmail(), e.getMessage());
+                }
 
                 return response;
         }
@@ -335,6 +499,14 @@ public class CaseRequestImpl implements ICaseRequestService {
                 do {
                         code = generateCode();
                 } while (userRepository.existsByCode(code));
+                return code;
+        }
+
+        private String generateUniqueCodeDocument() {
+                String code;
+                do {
+                        code = generateCode();
+                } while (documentRepository.existsByCode(code));
                 return code;
         }
 }

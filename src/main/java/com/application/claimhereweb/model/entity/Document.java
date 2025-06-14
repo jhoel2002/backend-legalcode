@@ -38,8 +38,8 @@ public class Document {
     @Enumerated(EnumType.STRING)
     private DocumentType type_document;
 
-    @Column(name = "key_document", nullable = false)
-    private String key_document;
+    @Column(name = "url", nullable = false)
+    private String url;
 
     @Column(name = "creation", nullable = false)
     @CreationTimestamp

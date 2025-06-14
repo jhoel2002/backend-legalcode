@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 
 import com.application.claimhereweb.model.entity.Buffet;
@@ -48,7 +49,54 @@ public class BuffetServiceImpl implements IBuffetService {
 
     @Override
     @Transactional
+    public ReponseSaveBuffetDTO saveBuffetWithLogo(SaveBuffetDTO dto, MultipartFile file) {
+        logger.info("Verificando si el buffet '{}' ya existe...", dto.getName());
 
+        if (buffetRepository.existsByName(dto.getName())) {
+            throw new IllegalArgumentException("El buffet con nombre '" + dto.getName() + "' ya está registrado.");
+        }
+
+        Buffet buffet = modelMapper.map(dto, Buffet.class);
+        String codigoBuffet = generateUniqueCode();
+        buffet.setCode(codigoBuffet);
+        buffet.setEncrypted(passwordEncoder.encode(codigoBuffet));
+
+        if (file != null && !file.isEmpty()) {
+            String mimeType = file.getContentType();
+            List<String> allowedMimeTypes = List.of("image/png", "image/jpeg", "image/jpg");
+
+            if (mimeType == null || !allowedMimeTypes.contains(mimeType)) {
+                throw new IllegalArgumentException("Tipo de archivo no permitido: " + mimeType);
+            }
+
+            try {
+                String timestamp = String.valueOf(System.currentTimeMillis());
+                String originalName = file.getOriginalFilename();
+                String newFileName = timestamp + "_" + originalName;
+
+                String s3Key = "buffets/" + codigoBuffet + "/logo/" + newFileName;
+
+                ObjectMetadata metadata = new ObjectMetadata();
+                metadata.setContentLength(file.getSize());
+                metadata.setContentType(file.getContentType());
+
+                amazonS3.putObject(new PutObjectRequest(bucketName, s3Key, file.getInputStream(), metadata));
+
+                String s3Url = amazonS3.getUrl(bucketName, s3Key).toString();
+                buffet.setImg(s3Url);
+
+            } catch (IOException e) {
+                logger.error("Error al subir logo a S3: {}", e.getMessage(), e);
+                throw new RuntimeException("Fallo al subir el logo a S3", e);
+            }
+        }
+
+        buffet = buffetRepository.save(buffet);
+        return modelMapper.map(buffet, ReponseSaveBuffetDTO.class);
+    }
+
+    @Override
+    @Transactional
     public ReponseSaveBuffetDTO saveBuffet(SaveBuffetDTO dto) {
         logger.info("Verificando si el buffet '{}' ya existe...", dto.getName());
 
@@ -69,16 +117,6 @@ public class BuffetServiceImpl implements IBuffetService {
 
         ReponseSaveBuffetDTO response = modelMapper.map(buffet, ReponseSaveBuffetDTO.class);
         return response;
-    }
-
-    @Override
-    @Transactional
-    public void updateBuffetEnableStatus(String code, boolean enable) {
-        Buffet buffet = buffetRepository.findByCode(code)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Buffet no encontrado"));
-
-        buffet.setEnable(enable);
-        buffetRepository.save(buffet);
     }
 
     @Override
@@ -123,6 +161,16 @@ public class BuffetServiceImpl implements IBuffetService {
                 mainFile.delete();
             }
         }
+    }
+
+    @Override
+    @Transactional
+    public void updateBuffetEnableStatus(String code, boolean enable) {
+        Buffet buffet = buffetRepository.findByCode(code)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Buffet no encontrado"));
+
+        buffet.setEnable(enable);
+        buffetRepository.save(buffet);
     }
 
     private String generateCode() {
