@@ -8,16 +8,21 @@ import java.sql.Timestamp;
 import org.springframework.data.domain.Pageable;
 
 import com.application.claimhereweb.model.entity.SimplePageResponse;
-import com.application.claimhereweb.service.dto.ResponseCaseDTO;
+import com.application.claimhereweb.service.dto.AssignLawyerDTO;
 import com.application.claimhereweb.service.dto.ResponseCaseRequestDTO;
 import com.application.claimhereweb.service.dto.SaveCaseRequestDTO;
-import com.application.claimhereweb.service.dto.StatusCaseRequestDTO;
+import com.application.claimhereweb.service.dto.UpdateCaseRequestDTO;
+import com.application.claimhereweb.service.dto.UpdateStatusCaseRequestDTO;
 
 public interface ICaseRequestService {
 
-        public ResponseCaseRequestDTO saveCaseRequest(SaveCaseRequestDTO SaveCaseDTO, Long id_customer);
+        public ResponseCaseRequestDTO save(SaveCaseRequestDTO dto, String codeCustomer);
 
-        public ResponseCaseDTO statusCaseRequest(StatusCaseRequestDTO updateCaseRequestDTO);
+        public void updateStatusCaseRequest(UpdateStatusCaseRequestDTO dto);
+
+        public ResponseCaseRequestDTO updateInfo(UpdateCaseRequestDTO dto, String code);
+
+        public void assignLawyerCase(AssignLawyerDTO dto);
 
         public SimplePageResponse<ResponseCaseRequestDTO> listFilterStatus(String status, Pageable pageable);
 
