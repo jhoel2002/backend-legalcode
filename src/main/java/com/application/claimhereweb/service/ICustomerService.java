@@ -18,16 +18,18 @@ public interface ICustomerService {
         // Metodo para actualizar los datos del cliente
         public ResponseSaveCustomerDTO updateCustomer(String code, UpdateCustomerDTO dto);
 
-        public SimplePageResponse<ResponseCustomerDTO> listFilterSearch(String search, Pageable pageable);
+        public SimplePageResponse<ResponseCustomerDTO> listFilterSearch(String search, Pageable pageable,
+                        String codeBuffet);
 
         public SimplePageResponse<ResponseCustomerDTO> findAll(Pageable pageable, String codeBuffet);
 
-        public SimplePageResponse<ResponseCustomerDTO> findAllByCreationDate(Timestamp starDate, Timestamp endDate,
-                        Pageable pageable);
+        public SimplePageResponse<ResponseCustomerDTO> findAllByCreationDate(Timestamp startDate, Timestamp endDate,
+                        Pageable pageable, String codeBuffet);
 
         public SimplePageResponse<ResponseCustomerDTO> listFilterSearchAndDate(
                         String search,
                         Timestamp startDate,
                         Timestamp endDate,
-                        Pageable pageable);
+                        Pageable pageable,
+                        String codeBuffet);
 }

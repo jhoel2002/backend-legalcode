@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.application.claimhereweb.model.entity.SimplePageResponse;
 import com.application.claimhereweb.service.ILawyerService;
+import com.application.claimhereweb.service.dto.ReponseUpdateLawyerDTO;
 import com.application.claimhereweb.service.dto.ResponseLawyerDTO;
 import com.application.claimhereweb.service.dto.ResponseSaveLawyerDTO;
 import com.application.claimhereweb.service.dto.SaveLawyerDTO;
@@ -43,25 +44,27 @@ public class LawyerController {
     }
 
     @PutMapping("/updateLawyer/{code}")
-    public ResponseEntity<ResponseSaveLawyerDTO> updateLawyer(
+    public ResponseEntity<ReponseUpdateLawyerDTO> updateLawyer(
             @PathVariable String code,
             @Valid @RequestBody UpdateLawyerDTO dto) {
 
-        ResponseSaveLawyerDTO response = lawyerService.updateLawyer(code, dto);
+        ReponseUpdateLawyerDTO response = lawyerService.updateLawyer(code, dto);
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping
-    public SimplePageResponse<ResponseLawyerDTO> listAll(Pageable pageable) {
-        return lawyerService.findAll(pageable);
+    @GetMapping("/{codeBuffet}")
+    public SimplePageResponse<ResponseLawyerDTO> listAll(Pageable pageable,
+            @PathVariable String codeBuffet) {
+        return lawyerService.findAll(pageable, codeBuffet);
     }
 
-    @GetMapping("/listFilterFull")
+    @GetMapping("/listFilterFull/{codeBuffet}")
     public SimplePageResponse<ResponseLawyerDTO> listFilterFull(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate,
-            Pageable pageable) {
+            Pageable pageable,
+            @PathVariable String codeBuffet) {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
@@ -76,21 +79,24 @@ public class LawyerController {
             endTimestamp = Timestamp.valueOf(endLocalDate.atTime(LocalTime.MAX));
         }
 
-        return lawyerService.listFilterSearchAndDate(search, startTimestamp, endTimestamp, pageable);
+        return lawyerService.listFilterSearchAndDate(search, startTimestamp, endTimestamp,
+                pageable, codeBuffet);
     }
 
-    @GetMapping("/listFilterSearch")
+    @GetMapping("/listFilterSearch/{codeBuffet}")
     public SimplePageResponse<ResponseLawyerDTO> listFilterSearch(
             @RequestParam(required = false) String search,
-            Pageable pageable) {
-        return lawyerService.listFilterSearch(search, pageable);
+            Pageable pageable,
+            @PathVariable String codeBuffet) {
+        return lawyerService.listFilterSearch(search, pageable, codeBuffet);
     }
 
-    @GetMapping("/listFilterCreationDate")
+    @GetMapping("/listFilterCreationDate/{codeBuffet}")
     public SimplePageResponse<ResponseLawyerDTO> listFilterCreationDate(
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate,
-            Pageable pageable) {
+            Pageable pageable,
+            @PathVariable String codeBuffet) {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
@@ -101,9 +107,10 @@ public class LawyerController {
             Timestamp startTimestamp = Timestamp.valueOf(startLocalDate.atStartOfDay());
             Timestamp endTimestamp = Timestamp.valueOf(endLocalDate.atTime(LocalTime.MAX));
 
-            return lawyerService.findAllByCreationDate(startTimestamp, endTimestamp, pageable);
+            return lawyerService.findAllByCreationDate(startTimestamp, endTimestamp,
+                    pageable, codeBuffet);
         }
 
-        return lawyerService.findAll(pageable);
+        return lawyerService.findAll(pageable, codeBuffet);
     }
 }

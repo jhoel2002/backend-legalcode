@@ -31,7 +31,6 @@ import com.application.claimhereweb.service.dto.ResponseSaveCustomerDTO;
 import com.application.claimhereweb.service.dto.SaveCustomerDTO;
 import com.application.claimhereweb.service.dto.UpdateCustomerDTO;
 import com.application.claimhereweb.model.entity.User;
-import com.application.claimhereweb.model.entity.enumEntity.DocumentCustomertype;
 
 import org.springframework.http.HttpStatus;
 
@@ -139,9 +138,6 @@ public class CustomerServiceImpl implements ICustomerService {
                 .orElseThrow(
                         () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Datos de cliente no encontrados"));
 
-        customer.setDocument_type(DocumentCustomertype.valueOf(dto.getDocument_type()));
-        customer.setDocument_number(dto.getDocument_number());
-
         customerRepository.save(customer);
 
         ResponseSaveCustomerDTO response = modelMapper.map(user, ResponseSaveCustomerDTO.class);
@@ -162,12 +158,13 @@ public class CustomerServiceImpl implements ICustomerService {
     }
 
     // Filtro de busqueda por texto
-    public SimplePageResponse<ResponseCustomerDTO> listFilterSearch(String search, Pageable pageable) {
+    public SimplePageResponse<ResponseCustomerDTO> listFilterSearch(String search, Pageable pageable,
+            String codeBuffet) {
         logger.info("Listando clientes registrados. Filtro: {}", search);
 
         Page<Customer> page = (search == null || search.trim().isEmpty())
                 ? customerRepository.findAll(pageable)
-                : customerRepository.searchCustomers(search.trim(), pageable);
+                : customerRepository.searchCustomersByBuffetCode(search.trim(), codeBuffet, pageable);
 
         Page<ResponseCustomerDTO> dtoPage = page.map(this::responseFullCustomer);
         return new SimplePageResponse<>(dtoPage);
@@ -175,10 +172,11 @@ public class CustomerServiceImpl implements ICustomerService {
 
     // Filtro de busqueda por rango de fecha
     public SimplePageResponse<ResponseCustomerDTO> findAllByCreationDate(Timestamp startDate, Timestamp endDate,
-            Pageable pageable) {
+            Pageable pageable, String codeBuffet) {
         logger.info("Listando clientes registrados entre {} y {}", startDate, endDate);
 
-        Page<Customer> page = customerRepository.findCustomersByUserCreationDateBetween(startDate, endDate, pageable);
+        Page<Customer> page = customerRepository.findCustomersByUserCreationDateBetweenAndBuffetCode(startDate, endDate,
+                codeBuffet, pageable);
         Page<ResponseCustomerDTO> dtoPage = page.map(this::responseFullCustomer);
 
         return new SimplePageResponse<>(dtoPage);
@@ -189,7 +187,8 @@ public class CustomerServiceImpl implements ICustomerService {
             String search,
             Timestamp startDate,
             Timestamp endDate,
-            Pageable pageable) {
+            Pageable pageable,
+            String codeBuffet) {
 
         logger.info("Listando clientes. Filtro texto: '{}', rango fechas: {} a {}", search, startDate, endDate);
 
@@ -200,17 +199,18 @@ public class CustomerServiceImpl implements ICustomerService {
 
         if (hasSearch && hasDateRange) {
             // Filtrar por texto y rango fechas
-            page = customerRepository.searchCustomersByUserCreationDateBetween(
-                    search.trim(), startDate, endDate, pageable);
+            page = customerRepository.searchCustomersByUserCreationDateBetweenAndBuffetCode(
+                    search.trim(), startDate, endDate, codeBuffet, pageable);
         } else if (hasSearch) {
             // Sólo filtro texto
-            page = customerRepository.searchCustomers(search.trim(), pageable);
+            page = customerRepository.searchCustomersByBuffetCode(search.trim(), codeBuffet, pageable);
         } else if (hasDateRange) {
             // Sólo filtro rango fechas
-            page = customerRepository.findCustomersByUserCreationDateBetween(startDate, endDate, pageable);
+            page = customerRepository.findCustomersByUserCreationDateBetweenAndBuffetCode(startDate, endDate,
+                    codeBuffet, pageable);
         } else {
             // Sin filtros
-            page = customerRepository.findAll(pageable);
+            page = customerRepository.findByBuffetCode(codeBuffet, pageable);
         }
 
         Page<ResponseCustomerDTO> dtoPage = page.map(this::responseFullCustomer);
