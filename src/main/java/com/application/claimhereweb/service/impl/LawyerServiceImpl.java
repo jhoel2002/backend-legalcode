@@ -26,6 +26,7 @@ import com.application.claimhereweb.model.repository.LawyerRepository;
 import com.application.claimhereweb.model.repository.RoleRepository;
 import com.application.claimhereweb.model.repository.UserRepository;
 import com.application.claimhereweb.service.ILawyerService;
+import com.application.claimhereweb.service.dto.ReponseUpdateLawyerDTO;
 import com.application.claimhereweb.service.dto.ResponseLawyerDTO;
 import com.application.claimhereweb.service.dto.ResponseSaveLawyerDTO;
 import com.application.claimhereweb.service.dto.SaveLawyerDTO;
@@ -112,7 +113,7 @@ public class LawyerServiceImpl implements ILawyerService {
 
     @Override
     @Transactional
-    public ResponseSaveLawyerDTO updateLawyer(String code, UpdateLawyerDTO dto) {
+    public ReponseUpdateLawyerDTO updateLawyer(String code, UpdateLawyerDTO dto) {
         logger.info("Actualizando Abogado con código: {}", code);
 
         User user = userRepository.findByCode(code)
@@ -142,37 +143,37 @@ public class LawyerServiceImpl implements ILawyerService {
 
         lawyerRepository.save(lawyer);
 
-        ResponseSaveLawyerDTO response = modelMapper.map(user, ResponseSaveLawyerDTO.class);
+        ReponseUpdateLawyerDTO response = modelMapper.map(user, ReponseUpdateLawyerDTO.class);
         response.setName(lawyer.getUser().getName() + " " + lawyer.getUser().getLast_name());
-        response.setCase_type(lawyer.getCase_type().name());
         response.setBuffet(user.getBuffet().getName());
 
         return response;
     }
 
-    public SimplePageResponse<ResponseLawyerDTO> findAll(Pageable pageable) {
+    public SimplePageResponse<ResponseLawyerDTO> findAll(Pageable pageable, String codeBuffet) {
         logger.info("Listando abogados registrados");
-        Page<Lawyer> page = lawyerRepository.findAll(pageable);
+        Page<Lawyer> page = lawyerRepository.findByBuffetCode(codeBuffet, pageable);
         Page<ResponseLawyerDTO> dtoPage = page.map(this::responseFullLawyer);
         return new SimplePageResponse<>(dtoPage);
     }
 
-    public SimplePageResponse<ResponseLawyerDTO> listFilterSearch(String search, Pageable pageable) {
+    public SimplePageResponse<ResponseLawyerDTO> listFilterSearch(String search, Pageable pageable, String codeBuffet) {
         logger.info("Listando abogados registrados. Filtro: {}", search);
 
         Page<Lawyer> page = (search == null || search.trim().isEmpty())
-                ? lawyerRepository.findAll(pageable)
-                : lawyerRepository.searchLawyer(search.trim(), pageable);
+                ? lawyerRepository.findByBuffetCode(codeBuffet, pageable)
+                : lawyerRepository.searchLawyerByBuffetCode(search, codeBuffet, pageable);
 
         Page<ResponseLawyerDTO> dtoPage = page.map(this::responseFullLawyer);
         return new SimplePageResponse<>(dtoPage);
     }
 
     public SimplePageResponse<ResponseLawyerDTO> findAllByCreationDate(Timestamp startDate, Timestamp endDate,
-            Pageable pageable) {
+            Pageable pageable, String codeBuffet) {
         logger.info("Listando abogados registrados entre {} y {}", startDate, endDate);
 
-        Page<Lawyer> page = lawyerRepository.findLawyerByUserCreationDateBetween(startDate, endDate, pageable);
+        Page<Lawyer> page = lawyerRepository.findLawyerByUserCreationDateBetweenAndBuffetCode(startDate, endDate,
+                codeBuffet, pageable);
         Page<ResponseLawyerDTO> dtoPage = page.map(this::responseFullLawyer);
 
         return new SimplePageResponse<>(dtoPage);
@@ -182,7 +183,8 @@ public class LawyerServiceImpl implements ILawyerService {
             String search,
             Timestamp startDate,
             Timestamp endDate,
-            Pageable pageable) {
+            Pageable pageable,
+            String codeBuffet) {
 
         logger.info("Listando Abogados. Filtro texto: '{}', rango fechas: {} a {}", search, startDate, endDate);
 
@@ -193,17 +195,18 @@ public class LawyerServiceImpl implements ILawyerService {
 
         if (hasSearch && hasDateRange) {
             // Filtrar por texto y rango fechas
-            page = lawyerRepository.searchLawyerByUserCreationDateBetween(
-                    search.trim(), startDate, endDate, pageable);
+            page = lawyerRepository.searchLawyerByUserCreationDateBetweenAndBuffetCode(
+                    search.trim(), startDate, endDate, codeBuffet, pageable);
         } else if (hasSearch) {
             // Sólo filtro texto
-            page = lawyerRepository.searchLawyer(search.trim(), pageable);
+            page = lawyerRepository.searchLawyerByBuffetCode(search, codeBuffet, pageable);
         } else if (hasDateRange) {
             // Sólo filtro rango fechas
-            page = lawyerRepository.findLawyerByUserCreationDateBetween(startDate, endDate, pageable);
+            page = lawyerRepository.findLawyerByUserCreationDateBetweenAndBuffetCode(startDate, endDate,
+                    codeBuffet, pageable);
         } else {
             // Sin filtros
-            page = lawyerRepository.findAll(pageable);
+            page = lawyerRepository.findByBuffetCode(codeBuffet, pageable);
         }
 
         Page<ResponseLawyerDTO> dtoPage = page.map(this::responseFullLawyer);

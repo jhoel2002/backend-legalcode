@@ -95,11 +95,16 @@ public class CaseRequestController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/{codeBuffet}")
-    public SimplePageResponse<ResponseCaseRequestDTO> listAll(Pageable pageable,
-            @PathVariable String codeBuffet) {
-        return caseRequestService.findAll(pageable, codeBuffet);
-    }
+    /*
+     * @GetMapping("/{codeBuffet}")
+     * public SimplePageResponse<ResponseCaseRequestDTO> listAll(Pageable pageable,
+     * 
+     * @PathVariable String codeBuffet,
+     * 
+     * @PathVariable String status) {
+     * return caseRequestService.findAll(pageable, codeBuffet, status);
+     * }
+     */
 
     @GetMapping("/listFilterStatus/{codeBuffet}")
     public SimplePageResponse<ResponseCaseRequestDTO> listFilterStatus(
