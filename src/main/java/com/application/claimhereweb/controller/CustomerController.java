@@ -4,6 +4,7 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.application.claimhereweb.model.entity.SimplePageResponse;
 import com.application.claimhereweb.service.ICustomerService;
 import com.application.claimhereweb.service.dto.ResponseCustomerDTO;
+import com.application.claimhereweb.service.dto.ResponseCustomerSimpleDTO;
 import com.application.claimhereweb.service.dto.ResponseSaveCustomerDTO;
 import com.application.claimhereweb.service.dto.SaveCustomerDTO;
 import com.application.claimhereweb.service.dto.UpdateCustomerDTO;
@@ -56,6 +58,15 @@ public class CustomerController {
     public SimplePageResponse<ResponseCustomerDTO> listAll(Pageable pageable,
             @PathVariable String codeBuffet) {
         return customerService.findAll(pageable, codeBuffet);
+    }
+
+    @GetMapping("/simple/{codeBuffet}")
+    public ResponseEntity<List<ResponseCustomerSimpleDTO>> searchSimpleCustomers(
+            @PathVariable String codeBuffet,
+            @RequestParam String search) {
+
+        List<ResponseCustomerSimpleDTO> result = customerService.searchSimpleCustomer(search, codeBuffet);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/listFilterFull/{codeBuffet}")

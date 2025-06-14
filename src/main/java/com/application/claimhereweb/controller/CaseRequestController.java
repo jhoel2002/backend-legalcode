@@ -95,16 +95,12 @@ public class CaseRequestController {
         return ResponseEntity.noContent().build();
     }
 
-    /*
-     * @GetMapping("/{codeBuffet}")
-     * public SimplePageResponse<ResponseCaseRequestDTO> listAll(Pageable pageable,
-     * 
-     * @PathVariable String codeBuffet,
-     * 
-     * @PathVariable String status) {
-     * return caseRequestService.findAll(pageable, codeBuffet, status);
-     * }
-     */
+    @GetMapping("/{codeBuffet}")
+    public SimplePageResponse<ResponseCaseRequestDTO> listAll(Pageable pageable,
+            @PathVariable String codeBuffet) {
+
+        return caseRequestService.findAll(pageable, codeBuffet);
+    }
 
     @GetMapping("/listFilterStatus/{codeBuffet}")
     public SimplePageResponse<ResponseCaseRequestDTO> listFilterStatus(
@@ -117,9 +113,10 @@ public class CaseRequestController {
     @GetMapping("/listFilterSearch/{codeBuffet}")
     public SimplePageResponse<ResponseCaseRequestDTO> listerFilterSearch(
             @RequestParam(required = false) String search,
+            @RequestParam(required = false) String status,
             Pageable pageable,
             @PathVariable String codeBuffet) {
-        return caseRequestService.listFilterSearch(search, pageable, codeBuffet);
+        return caseRequestService.listFilterSearch(search, pageable, codeBuffet, status);
     }
 
     @GetMapping("/listFilterApplicationDate/{codeBuffet}")
@@ -127,7 +124,8 @@ public class CaseRequestController {
             @RequestParam(required = false) String startDate,
             @RequestParam(required = false) String endDate,
             Pageable pageable,
-            @PathVariable String codeBuffet) {
+            @PathVariable String codeBuffet,
+            @RequestParam String status) {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
@@ -139,10 +137,10 @@ public class CaseRequestController {
             Timestamp endTimestamp = Timestamp.valueOf(endLocalDate.atTime(LocalTime.MAX));
 
             return caseRequestService.findAllbyApplicationDate(startTimestamp,
-                    endTimestamp, pageable, codeBuffet);
+                    endTimestamp, pageable, codeBuffet, status);
         }
 
-        return caseRequestService.findAll(pageable, codeBuffet);
+        return caseRequestService.listFilterStatus(status, pageable, codeBuffet);
     }
 
     @GetMapping("/listFilterFull/{codeBuffet}")

@@ -115,13 +115,26 @@ public class CaseRequestImpl implements ICaseRequestService {
         @Override
         @Transactional
         public SimplePageResponse<ResponseCaseRequestDTO> listFilterSearch(String search, Pageable pageable,
-                        String codeBuffet) {
+                        String codeBuffet, String status) {
                 logger.info("Listando solicitudes de casos registrados. Filtro: {}", search);
+                if (status.equals("PENDING")) {
+                        Page<CaseRequest> pagePending = (search == null || search.trim().isEmpty())
+                                        ? caseRequestRepository.findAllFilteredStatusByBuffetCode(codeBuffet, pageable)
+                                        : caseRequestRepository.searchCaseRequestByBuffetCodePending(search.trim(),
+                                                        codeBuffet,
+                                                        pageable);
+
+                        Page<ResponseCaseRequestDTO> dtoPagePending = pagePending.map(this::responseFullCaseRequest);
+                        return new SimplePageResponse<>(dtoPagePending);
+                }
 
                 Page<CaseRequest> page = (search == null || search.trim().isEmpty())
-                                ? caseRequestRepository.findAllByBuffetCode(codeBuffet, pageable)
-                                : caseRequestRepository.searchCaseRequestByBuffetCode(search.trim(), codeBuffet,
-                                                pageable);
+                                ? caseRequestRepository.findAllByStatusRequestAndBuffetCode(
+                                                CaseStatusRequest.valueOf(status.toUpperCase()), codeBuffet, pageable)
+                                : caseRequestRepository.searchCaseRequestByBuffetCode(search.trim(),
+                                                codeBuffet,
+                                                pageable,
+                                                status);
 
                 Page<ResponseCaseRequestDTO> dtoPage = page.map(this::responseFullCaseRequest);
                 return new SimplePageResponse<>(dtoPage);
@@ -132,7 +145,8 @@ public class CaseRequestImpl implements ICaseRequestService {
         public SimplePageResponse<ResponseCaseRequestDTO> findAllbyApplicationDate(Timestamp startDate,
                         Timestamp endDate,
                         Pageable pageable,
-                        String codeBuffet) {
+                        String codeBuffet,
+                        String status) {
                 logger.info("Listando clientes registrados entre {} y {}", startDate, endDate);
 
                 Page<CaseRequest> page = caseRequestRepository.findCaseRequestByBuffetCodeAndCreationBetween(codeBuffet,
@@ -147,6 +161,14 @@ public class CaseRequestImpl implements ICaseRequestService {
         @Transactional
         public SimplePageResponse<ResponseCaseRequestDTO> listFilterStatus(String status, Pageable pageable,
                         String codeBuffet) {
+
+                if (status.equals("PENDING")) {
+                        Page<CaseRequest> pendingRequest = caseRequestRepository
+                                        .findAllFilteredStatusByBuffetCode(codeBuffet, pageable);
+                        Page<ResponseCaseRequestDTO> dtoPendingPage = pendingRequest.map(this::responseFullCaseRequest);
+                        return new SimplePageResponse<>(dtoPendingPage);
+                }
+
                 Page<CaseRequest> caseRequests = caseRequestRepository.findAllByStatusRequestAndBuffetCode(
                                 CaseStatusRequest.valueOf(status.toUpperCase()), codeBuffet, pageable);
 

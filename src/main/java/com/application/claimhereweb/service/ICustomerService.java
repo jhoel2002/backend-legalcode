@@ -2,11 +2,13 @@ package com.application.claimhereweb.service;
 
 import com.application.claimhereweb.model.entity.SimplePageResponse;
 import com.application.claimhereweb.service.dto.ResponseCustomerDTO;
+import com.application.claimhereweb.service.dto.ResponseCustomerSimpleDTO;
 import com.application.claimhereweb.service.dto.ResponseSaveCustomerDTO;
 import com.application.claimhereweb.service.dto.SaveCustomerDTO;
 import com.application.claimhereweb.service.dto.UpdateCustomerDTO;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 import org.springframework.data.domain.Pageable;
 
@@ -32,4 +34,6 @@ public interface ICustomerService {
                         Timestamp endDate,
                         Pageable pageable,
                         String codeBuffet);
+
+        public List<ResponseCustomerSimpleDTO> searchSimpleCustomer(String search, String codeBuffet);
 }

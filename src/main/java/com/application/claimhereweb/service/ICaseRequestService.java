@@ -34,12 +34,13 @@ public interface ICaseRequestService {
         public SimplePageResponse<ResponseCaseRequestDTO> findAll(Pageable pageable, String code);
 
         public SimplePageResponse<ResponseCaseRequestDTO> listFilterSearch(String search, Pageable pageable,
-                        String codeBuffet);
+                        String codeBuffet, String status);
 
         public SimplePageResponse<ResponseCaseRequestDTO> findAllbyApplicationDate(Timestamp startDate,
                         Timestamp endDate,
                         Pageable pageable,
-                        String codeBuffet);
+                        String codeBuffet,
+                        String status);
 
         public SimplePageResponse<ResponseCaseRequestDTO> listFilterFull(
                         String search,

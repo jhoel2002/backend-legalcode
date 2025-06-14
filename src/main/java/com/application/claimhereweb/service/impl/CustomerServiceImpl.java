@@ -2,6 +2,7 @@ package com.application.claimhereweb.service.impl;
 
 import java.sql.Timestamp;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -27,6 +28,7 @@ import com.application.claimhereweb.model.repository.RoleRepository;
 import com.application.claimhereweb.model.repository.UserRepository;
 import com.application.claimhereweb.service.ICustomerService;
 import com.application.claimhereweb.service.dto.ResponseCustomerDTO;
+import com.application.claimhereweb.service.dto.ResponseCustomerSimpleDTO;
 import com.application.claimhereweb.service.dto.ResponseSaveCustomerDTO;
 import com.application.claimhereweb.service.dto.SaveCustomerDTO;
 import com.application.claimhereweb.service.dto.UpdateCustomerDTO;
@@ -215,6 +217,17 @@ public class CustomerServiceImpl implements ICustomerService {
 
         Page<ResponseCustomerDTO> dtoPage = page.map(this::responseFullCustomer);
         return new SimplePageResponse<>(dtoPage);
+    }
+
+    @Override
+    public List<ResponseCustomerSimpleDTO> searchSimpleCustomer(String search, String codeBuffet) {
+        return customerRepository.searchCustomerByUserCodeOrNameOrLastName(search, codeBuffet).stream()
+                .map(c -> {
+                    String busqueda = c.getUser().getCode() + " - " + c.getUser().getName() + " "
+                            + c.getUser().getLast_name();
+                    return new ResponseCustomerSimpleDTO(busqueda);
+                })
+                .toList();
     }
 
     private ResponseCustomerDTO responseFullCustomer(Customer customer) {
