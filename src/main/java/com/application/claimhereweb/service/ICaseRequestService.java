@@ -49,4 +49,7 @@ public interface ICaseRequestService {
                         String status,
                         Pageable pageable,
                         String codeBuffet);
+
+        public ResponseCaseRequestDTO saveEvidenceMassiveQuotation(SaveCaseRequestDTO dto, String codeCustomer,
+                        MultipartFile[] evidencia, MultipartFile[] cotizacion);
 }

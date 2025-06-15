@@ -40,8 +40,27 @@ public class CaseRequestController {
     @Autowired
     private ICaseRequestService caseRequestService;
 
+    @PostMapping("/saveEvidenceMassiveQuotation/{codeCustomer}")
+    public ResponseEntity<ResponseCaseRequestDTO> saveEvidenceMassiveQuotation(
+            @PathVariable("codeCustomer") String codeCustomer,
+            @RequestParam("title") String title,
+            @RequestParam("description") String description,
+            @RequestParam("type_case") CaseType typeCase,
+            @RequestParam(name = "evidencia", required = false) MultipartFile[] evidencia,
+            @RequestParam(name = "cotizacion", required = false) MultipartFile[] cotizacion) {
+
+        SaveCaseRequestDTO dto = new SaveCaseRequestDTO();
+        dto.setTitle(title);
+        dto.setDescription(description);
+        dto.setType_case(typeCase);
+
+        ResponseCaseRequestDTO response = caseRequestService.saveEvidenceMassiveQuotation(dto, codeCustomer, evidencia,
+                cotizacion);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
+    }
+
     @PostMapping("/saveEvidenceMassive/{codeCustomer}")
-    public ResponseEntity<ResponseCaseRequestDTO> saveCaseWithEvidence(
+    public ResponseEntity<ResponseCaseRequestDTO> saveEvidenceMassive(
             @PathVariable("codeCustomer") String codeCustomer,
             @RequestParam("files") MultipartFile[] files,
             @RequestParam("title") String title,

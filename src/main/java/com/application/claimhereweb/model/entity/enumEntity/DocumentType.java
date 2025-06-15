@@ -4,5 +4,6 @@ public enum DocumentType {
     REPORT,
     RESOLUTION,
     EVIDENCE,
-    COMPLAINT
+    COMPLAINT,
+    QUOTATION
 }
