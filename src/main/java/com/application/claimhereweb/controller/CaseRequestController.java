@@ -26,6 +26,7 @@ import com.application.claimhereweb.model.entity.enumEntity.CaseType;
 import com.application.claimhereweb.service.ICaseRequestService;
 import com.application.claimhereweb.service.dto.AssignLawyerDTO;
 import com.application.claimhereweb.service.dto.ResponseCaseRequestDTO;
+import com.application.claimhereweb.service.dto.ResponseCaseRequestInfoDTO;
 import com.application.claimhereweb.service.dto.SaveCaseRequestDTO;
 import com.application.claimhereweb.service.dto.UpdateCaseRequestDTO;
 import com.application.claimhereweb.service.dto.UpdateStatusCaseRequestDTO;
@@ -39,6 +40,12 @@ public class CaseRequestController {
 
     @Autowired
     private ICaseRequestService caseRequestService;
+
+    @GetMapping("/info/{code}")
+    public ResponseEntity<ResponseCaseRequestInfoDTO> getCaseRequestInfo(@PathVariable("code") String code) {
+        ResponseCaseRequestInfoDTO response = caseRequestService.searchInfo(code);
+        return ResponseEntity.ok(response);
+    }
 
     @PostMapping("/saveEvidenceMassiveQuotation/{codeCustomer}")
     public ResponseEntity<ResponseCaseRequestDTO> saveEvidenceMassiveQuotation(
