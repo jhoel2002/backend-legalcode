@@ -48,5 +48,5 @@ RUN chown -R admin:devopsc /tmp
 USER admin
 
 # Ejecuta el JAR (de forma limpia, sin sh -c)
-ENTRYPOINT ["java", "-jar", "/opt/app.jar"]
+ENTRYPOINT ["java", "-jar", "/tmp/app.jar"]
 
