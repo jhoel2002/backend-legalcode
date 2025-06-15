@@ -332,7 +332,7 @@ public class CaseRequestImpl implements ICaseRequestService {
         @Override
         @Transactional
         public ResponseCaseRequestDTO saveEvidenceMassive(SaveCaseRequestDTO dto, String codeCustomer,
-                        MultipartFile[] files) {
+                        MultipartFile[] evidencia) {
                 logger.info("Registrando solicitud de caso: {}", dto.getTitle());
 
                 User user = userRepository.findByCode(codeCustomer)
@@ -360,7 +360,7 @@ public class CaseRequestImpl implements ICaseRequestService {
                 response.setCreation(savedCase.getCreation().toLocalDateTime()
                                 .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
 
-                if (files != null && files.length > 0) {
+                if (evidencia != null && evidencia.length > 0) {
                         List<String> allowedMimeTypes = List.of(
                                         "image/png", "image/jpeg", "image/jpg",
                                         "application/pdf", "text/plain", "text/csv",
@@ -369,7 +369,7 @@ public class CaseRequestImpl implements ICaseRequestService {
                                         "application/vnd.ms-excel",
                                         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
-                        for (MultipartFile file : files) {
+                        for (MultipartFile file : evidencia) {
                                 if (file == null || file.isEmpty())
                                         continue;
 
@@ -424,6 +424,143 @@ public class CaseRequestImpl implements ICaseRequestService {
                 }
 
                 return response;
+        }
+
+        @Override
+        @Transactional
+        public ResponseCaseRequestDTO saveEvidenceMassiveQuotation(SaveCaseRequestDTO dto, String codeCustomer,
+                        MultipartFile[] evidencia, MultipartFile[] cotizacion) {
+
+                logger.info("Validando archivos antes de procesar solicitud: {}", dto.getTitle());
+
+                if (cotizacion != null && cotizacion.length > 1) {
+                        throw new ResponseStatusException(
+                                        HttpStatus.INTERNAL_SERVER_ERROR,
+                                        "Solo se permite un archivo de cotización.");
+                }
+
+                List<String> allowedMimeTypes = List.of(
+                                "image/png", "image/jpeg", "image/jpg",
+                                "application/pdf", "text/plain", "text/csv",
+                                "application/msword",
+                                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                "application/vnd.ms-excel",
+                                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
+                if (cotizacion != null && cotizacion.length == 1) {
+                        MultipartFile archivo = cotizacion[0];
+                        String mimeType = archivo.getContentType();
+                        if (mimeType == null || !allowedMimeTypes.contains(mimeType)) {
+                                throw new ResponseStatusException(
+                                                HttpStatus.INTERNAL_SERVER_ERROR,
+                                                "Tipo de archivo no permitido: " + mimeType);
+                        }
+                }
+
+                if (evidencia != null && evidencia.length > 0) {
+                        for (MultipartFile file : evidencia) {
+                                if (file == null || file.isEmpty())
+                                        continue;
+
+                                String mimeType = file.getContentType();
+                                if (mimeType == null || !allowedMimeTypes.contains(mimeType)) {
+                                        throw new ResponseStatusException(
+                                                        HttpStatus.INTERNAL_SERVER_ERROR,
+                                                        "Tipo de archivo no permitido: " + mimeType);
+                                }
+                        }
+                }
+
+                logger.info("Validaciones completadas, registrando solicitud de caso: {}", dto.getTitle());
+
+                User user = userRepository.findByCode(codeCustomer)
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                                "Cliente no encontrado"));
+
+                Customer customer = customerRepository.findByUserId(user.getId())
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                                "Cliente no asociado"));
+
+                Buffet buffet = buffetRepository.findById(user.getBuffet().getId())
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                                "Buffet no encontrado"));
+
+                CaseRequest caseRequest = modelMapper.map(dto, CaseRequest.class);
+                caseRequest.setCode(generateUniqueCode());
+                caseRequest.setCustomer(customer);
+                caseRequest.setBuffet(buffet);
+
+                CaseRequest savedCase = caseRequestRepository.save(caseRequest);
+
+                ResponseCaseRequestDTO response = modelMapper.map(savedCase, ResponseCaseRequestDTO.class);
+                response.setCustomer(user.getName() + " " + user.getLast_name());
+                response.setBuffet(buffet.getName());
+                response.setCreation(savedCase.getCreation().toLocalDateTime()
+                                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+
+                if (evidencia != null && evidencia.length > 0) {
+                        for (MultipartFile file : evidencia) {
+                                if (file == null || file.isEmpty())
+                                        continue;
+                                uploadAndSaveDocument(file, buffet, savedCase, DocumentType.EVIDENCE);
+                        }
+                }
+
+                if (cotizacion != null && cotizacion.length == 1) {
+                        MultipartFile archivo = cotizacion[0];
+                        if (!archivo.isEmpty()) {
+                                uploadAndSaveDocument(archivo, buffet, savedCase, DocumentType.QUOTATION);
+                        }
+                }
+
+                try {
+                        Map<String, Object> variables = Map.of(
+                                        "logo_buffet", buffet.getImg(),
+                                        "nombre_usuario", user.getName() + " " + user.getLast_name(),
+                                        "codigo_usuario", user.getCode(),
+                                        "codigo_solicitud", savedCase.getCode());
+                        emailService.sendEmailUsingTemplate("confirmacion_registro_caso", variables, user.getEmail());
+                        logger.info("Correo enviado a: {}", user.getEmail());
+                } catch (Exception e) {
+                        logger.warn("No se pudo enviar el correo a {}: {}", user.getEmail(), e.getMessage());
+                }
+
+                return response;
+        }
+
+        private void uploadAndSaveDocument(MultipartFile file, Buffet buffet, CaseRequest caseRequest,
+                        DocumentType tipo) {
+                try {
+                        String timestamp = String.valueOf(System.currentTimeMillis());
+                        String originalName = Optional.ofNullable(file.getOriginalFilename())
+                                        .orElse("archivo_sin_nombre");
+                        String newFileName = timestamp + "_" + originalName;
+
+                        String carpeta = tipo == DocumentType.QUOTATION ? "QUOTATION" : "EVIDENCE";
+                        String s3Key = "buffets/" + buffet.getCode() + "/" + carpeta + "/" + caseRequest.getCode() + "/"
+                                        + newFileName;
+
+                        ObjectMetadata metadata = new ObjectMetadata();
+                        metadata.setContentLength(file.getSize());
+                        metadata.setContentType(file.getContentType());
+
+                        amazonS3.putObject(new PutObjectRequest(bucketName, s3Key, file.getInputStream(), metadata));
+                        logger.info("Archivo {} cargado correctamente a S3 en {}", tipo, s3Key);
+
+                        Document document = new Document();
+                        document.setCode(generateUniqueCodeDocument());
+                        document.setType_document(tipo);
+                        document.setName(originalName);
+                        document.setUrl(s3Key);
+                        document.setBuffet(buffet);
+                        document.setCase_request(caseRequest);
+
+                        documentRepository.save(document);
+
+                } catch (IOException e) {
+                        logger.error("Error al subir archivo {} a S3: {}", tipo, e.getMessage(), e);
+                        throw new RuntimeException("Fallo al subir el archivo " + tipo + " a S3", e);
+                }
         }
 
         @Override
