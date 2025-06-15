@@ -12,6 +12,8 @@ import com.application.claimhereweb.model.entity.Document;
 public interface DocumentRepository extends JpaRepository<Document, Long> {
     boolean existsByCode(String code);
 
+    Optional<Document> findByCode(String code);
+
     @Query("""
                 SELECT d FROM Document d
                 JOIN d.case_request cr

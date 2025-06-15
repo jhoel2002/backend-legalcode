@@ -6,6 +6,7 @@ import java.sql.Timestamp;
 
 //import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.application.claimhereweb.model.entity.SimplePageResponse;
@@ -55,4 +56,6 @@ public interface ICaseRequestService {
                         MultipartFile[] evidencia, MultipartFile[] cotizacion);
 
         public ResponseCaseRequestInfoDTO searchInfo(String codeCaseRequest);
+
+        public ResponseEntity<byte[]> downloadDocument(String codeDocument);
 }
