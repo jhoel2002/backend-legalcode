@@ -41,6 +41,11 @@ public class CaseRequestController {
     @Autowired
     private ICaseRequestService caseRequestService;
 
+    @GetMapping("/document/download/{code}")
+    public ResponseEntity<byte[]> downloadDocument(@PathVariable("code") String code) {
+        return caseRequestService.downloadDocument(code);
+    }
+
     @GetMapping("/info/{code}")
     public ResponseEntity<ResponseCaseRequestInfoDTO> getCaseRequestInfo(@PathVariable("code") String code) {
         ResponseCaseRequestInfoDTO response = caseRequestService.searchInfo(code);

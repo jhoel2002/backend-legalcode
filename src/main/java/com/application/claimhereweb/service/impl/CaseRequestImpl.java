@@ -16,10 +16,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import com.amazonaws.services.s3.model.S3Object;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.application.claimhereweb.model.entity.Buffet;
 import com.application.claimhereweb.model.entity.CaseRequest;
 import com.application.claimhereweb.model.entity.Customer;
@@ -44,9 +46,14 @@ import com.application.claimhereweb.service.dto.SaveCaseRequestDTO;
 import com.application.claimhereweb.service.dto.UpdateCaseRequestDTO;
 import com.application.claimhereweb.service.dto.UpdateStatusCaseRequestDTO;
 
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
@@ -473,6 +480,33 @@ public class CaseRequestImpl implements ICaseRequestService {
                 }
 
                 return response;
+        }
+
+        @Override
+        @Transactional
+        public ResponseEntity<byte[]> downloadDocument(String codeDocument) {
+                Document document = documentRepository.findByCode(codeDocument)
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                                "Documento no encontrado"));
+
+                String s3Key = document.getUrl();
+
+                try (S3Object s3Object = amazonS3.getObject(bucketName, s3Key);
+                                S3ObjectInputStream inputStream = s3Object.getObjectContent()) {
+
+                        byte[] content = inputStream.readAllBytes();
+                        String fileName = document.getName();
+
+                        HttpHeaders headers = new HttpHeaders();
+                        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+                        headers.setContentDisposition(ContentDisposition.attachment().filename(fileName).build());
+
+                        return new ResponseEntity<>(content, headers, HttpStatus.OK);
+
+                } catch (IOException e) {
+                        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                                        "No se pudo descargar el archivo desde S3", e);
+                }
         }
 
         @Override
