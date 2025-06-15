@@ -39,6 +39,7 @@ import com.application.claimhereweb.model.repository.UserRepository;
 import com.application.claimhereweb.service.ICaseRequestService;
 import com.application.claimhereweb.service.dto.AssignLawyerDTO;
 import com.application.claimhereweb.service.dto.ResponseCaseRequestDTO;
+import com.application.claimhereweb.service.dto.ResponseCaseRequestInfoDTO;
 import com.application.claimhereweb.service.dto.SaveCaseRequestDTO;
 import com.application.claimhereweb.service.dto.UpdateCaseRequestDTO;
 import com.application.claimhereweb.service.dto.UpdateStatusCaseRequestDTO;
@@ -285,6 +286,54 @@ public class CaseRequestImpl implements ICaseRequestService {
                 String correoDestino = email;
                 emailService.sendEmailUsingTemplate("actualizacion_estado_caso", variables, correoDestino);
                 logger.info("Correo enviado a: " + correoDestino);
+        }
+
+        @Override
+        @Transactional
+        public ResponseCaseRequestInfoDTO searchInfo(String codeCaseRequest) {
+                logger.info("Obteniendo información detallada de la solicitud de caso con código: {}", codeCaseRequest);
+
+                CaseRequest caseRequest = caseRequestRepository.findByCode(codeCaseRequest)
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                                "Solicitud de caso no encontrada"));
+
+                Document quotation = documentRepository.findQuotationByCaseRequestCode(codeCaseRequest).orElse(null);
+
+                List<Document> evidencias = documentRepository.findEvidenceByCaseRequestCode(codeCaseRequest);
+
+                List<Map<String, String>> evidenciaList = evidencias.stream()
+                                .map(doc -> Map.of("code", doc.getCode(), "name", doc.getName()))
+                                .toList();
+
+                ResponseCaseRequestInfoDTO dto = new ResponseCaseRequestInfoDTO();
+                dto.setTitle(caseRequest.getTitle());
+                dto.setCode(caseRequest.getCode());
+                dto.setType_case(caseRequest.getType_case().toString());
+                dto.setStatus_request(caseRequest.getStatus_request().toString());
+
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                String formattedDate = caseRequest.getCreation().toLocalDateTime().format(formatter);
+                dto.setCreation(formattedDate);
+
+                if (caseRequest.getLawyer() != null) {
+                        dto.setLawyerName(caseRequest.getLawyer().getUser().getName() + " "
+                                        + caseRequest.getLawyer().getUser().getLast_name());
+                }
+
+                dto.setDescription(caseRequest.getDescription());
+                dto.setCustomerName(caseRequest.getCustomer().getUser().getName() + " "
+                                + caseRequest.getCustomer().getUser().getLast_name());
+                dto.setCustomerEmail(caseRequest.getCustomer().getUser().getEmail());
+                dto.setCustomerDocumentType(caseRequest.getCustomer().getDocument_type().toString());
+                dto.setCustomerDocumentNumber(caseRequest.getCustomer().getDocument_number());
+
+                dto.setEvidencias(evidenciaList);
+                if (quotation != null) {
+                        dto.setCotizacion(Map.of(
+                                        "code", quotation.getCode(),
+                                        "name", quotation.getName()));
+                }
+                return dto;
         }
 
         @Override
