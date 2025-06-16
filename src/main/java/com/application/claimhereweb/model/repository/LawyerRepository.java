@@ -1,6 +1,7 @@
 package com.application.claimhereweb.model.repository;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -12,6 +13,28 @@ import org.springframework.data.repository.query.Param;
 import com.application.claimhereweb.model.entity.Lawyer;
 
 public interface LawyerRepository extends JpaRepository<Lawyer, Long> {
+
+    @Query("""
+                SELECT l FROM Lawyer l
+                JOIN l.user u
+                WHERE u.enable = true
+            """)
+    List<Lawyer> findEnabledLawyers();
+
+    @Query("""
+                SELECT l FROM Lawyer l
+                JOIN l.user u
+                JOIN u.buffet b
+                WHERE b.code = :codeBuffet
+                  AND (
+                       LOWER(u.code) LIKE LOWER(CONCAT('%', :search, '%'))
+                    OR LOWER(u.name) LIKE LOWER(CONCAT('%', :search, '%'))
+                    OR LOWER(u.last_name) LIKE LOWER(CONCAT('%', :search, '%'))
+                  )
+            """)
+    List<Lawyer> searchLawyerByUserCodeOrNameOrLastName(
+            @Param("search") String search,
+            @Param("codeBuffet") String codeBuffet);
 
     // Buscar abogado por ID de usuario
     Optional<Lawyer> findByUserId(Long userId);

@@ -1,5 +1,7 @@
 package com.application.claimhereweb.service;
 
+import java.util.List;
+
 import org.springframework.web.multipart.MultipartFile;
 
 import com.application.claimhereweb.service.dto.ReponseSaveBuffetDTO;
@@ -17,4 +19,6 @@ public interface IBuffetService {
     public String uploadBuffetLogo(MultipartFile file, String buffetCode);
 
     public ReponseSaveBuffetDTO saveBuffetWithLogo(SaveBuffetDTO dto, MultipartFile file);
+
+    public List<String> getTypeCasesByBuffetCode(String code);
 }

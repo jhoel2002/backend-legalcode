@@ -15,7 +15,7 @@ import org.springframework.data.domain.Pageable;
 public interface ICustomerService {
 
         // Metodo para guardar cliente
-        public ResponseSaveCustomerDTO saveCustomer(SaveCustomerDTO saveCustomerDTO);
+        public ResponseSaveCustomerDTO saveCustomer(SaveCustomerDTO dto, String codeBuffet);
 
         // Metodo para actualizar los datos del cliente
         public ResponseSaveCustomerDTO updateCustomer(String code, UpdateCustomerDTO dto);

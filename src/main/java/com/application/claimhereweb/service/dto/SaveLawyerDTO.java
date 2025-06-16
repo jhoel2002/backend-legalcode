@@ -4,7 +4,6 @@ import lombok.Data;
 
 @Data
 public class SaveLawyerDTO {
-    private String buffet;
     private String email;
     private String name;
     private String password;
@@ -12,4 +11,5 @@ public class SaveLawyerDTO {
     private String phone;
     private String address;
     private String case_type;
+    private String description;
 }

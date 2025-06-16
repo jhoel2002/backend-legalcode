@@ -1,6 +1,7 @@
 package com.application.claimhereweb.service;
 
 import java.sql.Timestamp;
+import java.util.List;
 
 //import java.util.List;
 
@@ -12,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.application.claimhereweb.model.entity.SimplePageResponse;
 import com.application.claimhereweb.service.dto.AssignLawyerDTO;
 import com.application.claimhereweb.service.dto.ResponseCaseRequestDTO;
+import com.application.claimhereweb.service.dto.ResponseCaseRequestInfoCustomer;
 import com.application.claimhereweb.service.dto.ResponseCaseRequestInfoDTO;
 import com.application.claimhereweb.service.dto.SaveCaseRequestDTO;
 import com.application.claimhereweb.service.dto.UpdateCaseRequestDTO;
@@ -56,6 +58,8 @@ public interface ICaseRequestService {
                         MultipartFile[] evidencia, MultipartFile[] cotizacion);
 
         public ResponseCaseRequestInfoDTO searchInfo(String codeCaseRequest);
+
+        public List<ResponseCaseRequestInfoCustomer> searchInfoCustomer(String codeCustomer);
 
         public ResponseEntity<byte[]> downloadDocument(String codeDocument);
 }

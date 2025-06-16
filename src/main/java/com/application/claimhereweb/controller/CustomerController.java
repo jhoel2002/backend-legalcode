@@ -39,9 +39,10 @@ public class CustomerController {
     @Autowired
     private ICustomerService customerService;
 
-    @PostMapping("/save")
-    public ResponseEntity<ResponseSaveCustomerDTO> saveCustomer(@Valid @RequestBody SaveCustomerDTO dto) {
-        ResponseSaveCustomerDTO response = customerService.saveCustomer(dto);
+    @PostMapping("/save/{codeBuffet}")
+    public ResponseEntity<ResponseSaveCustomerDTO> saveCustomer(@Valid @RequestBody SaveCustomerDTO dto,
+            @PathVariable String codeBuffet) {
+        ResponseSaveCustomerDTO response = customerService.saveCustomer(dto, codeBuffet);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

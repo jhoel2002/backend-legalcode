@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import java.io.IOException;
@@ -22,7 +24,9 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 
 import com.application.claimhereweb.model.entity.Buffet;
+import com.application.claimhereweb.model.entity.TypeCase;
 import com.application.claimhereweb.model.repository.BuffetRepository;
+import com.application.claimhereweb.model.repository.TypeCaseRepository;
 import com.application.claimhereweb.service.IBuffetService;
 import com.application.claimhereweb.service.dto.ReponseSaveBuffetDTO;
 import com.application.claimhereweb.service.dto.SaveBuffetDTO;
@@ -40,6 +44,9 @@ public class BuffetServiceImpl implements IBuffetService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private TypeCaseRepository typeCaseRepository;
 
     @Autowired
     private AmazonS3 amazonS3;
@@ -91,8 +98,25 @@ public class BuffetServiceImpl implements IBuffetService {
             }
         }
 
+        Set<TypeCase> typeCases = dto.getTypeCase().stream()
+                .map(name -> typeCaseRepository.findByName(name)
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                "Tipo de Caso no encontrado: " + name)))
+                .collect(Collectors.toSet());
+
+        buffet.setTypeCase(typeCases);
+
         buffet = buffetRepository.save(buffet);
-        return modelMapper.map(buffet, ReponseSaveBuffetDTO.class);
+
+        ReponseSaveBuffetDTO response = modelMapper.map(buffet, ReponseSaveBuffetDTO.class);
+
+        List<String> typeCaseNames = buffet.getTypeCase().stream()
+                .map(TypeCase::getName)
+                .collect(Collectors.toList());
+
+        response.setTypeCase(typeCaseNames);
+
+        return response;
     }
 
     @Override
@@ -171,6 +195,18 @@ public class BuffetServiceImpl implements IBuffetService {
 
         buffet.setEnable(enable);
         buffetRepository.save(buffet);
+    }
+
+    @Override
+    @Transactional
+    public List<String> getTypeCasesByBuffetCode(String code) {
+        Buffet buffet = buffetRepository.findByCodeWithTypeCases(code)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                        "Buffet no tiene asociado ningun tipo de caso legal: " + code));
+
+        return buffet.getTypeCase().stream()
+                .map(TypeCase::getName)
+                .collect(Collectors.toList());
     }
 
     private String generateCode() {

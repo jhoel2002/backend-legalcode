@@ -1,8 +1,11 @@
 package com.application.claimhereweb.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -50,13 +53,27 @@ public class BuffetController {
     public ResponseEntity<ReponseSaveBuffetDTO> registerBuffetWithLogo(
             @RequestParam("name") String name,
             @RequestParam("enable") boolean enable,
-            @RequestParam("file") MultipartFile logoFile) {
+            @RequestParam("description") String description,
+            @RequestParam("longitud") String longitud,
+            @RequestParam("latitud") String latitud,
+            @RequestParam("file") MultipartFile logoFile,
+            @RequestParam("type_case") List<String> type_case) {
 
         SaveBuffetDTO dto = new SaveBuffetDTO();
         dto.setName(name);
         dto.setEnable(enable);
+        dto.setTypeCase(type_case);
+        dto.setDescription(description);
+        dto.setLongitud(longitud);
+        dto.setLatitud(latitud);
 
         ReponseSaveBuffetDTO response = buffetService.saveBuffetWithLogo(dto, logoFile);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/typeCases/{code}")
+    public ResponseEntity<List<String>> getTypeCasesByBuffetCode(@PathVariable String code) {
+        List<String> typeCases = buffetService.getTypeCasesByBuffetCode(code);
+        return ResponseEntity.ok(typeCases);
     }
 }

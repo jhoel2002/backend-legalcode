@@ -4,6 +4,7 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,6 +27,7 @@ import com.application.claimhereweb.model.entity.enumEntity.CaseType;
 import com.application.claimhereweb.service.ICaseRequestService;
 import com.application.claimhereweb.service.dto.AssignLawyerDTO;
 import com.application.claimhereweb.service.dto.ResponseCaseRequestDTO;
+import com.application.claimhereweb.service.dto.ResponseCaseRequestInfoCustomer;
 import com.application.claimhereweb.service.dto.ResponseCaseRequestInfoDTO;
 import com.application.claimhereweb.service.dto.SaveCaseRequestDTO;
 import com.application.claimhereweb.service.dto.UpdateCaseRequestDTO;
@@ -52,12 +54,20 @@ public class CaseRequestController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/infoCustomer/{codeCustomer}")
+    public ResponseEntity<List<ResponseCaseRequestInfoCustomer>> getCaseRequestInfoCustomer(
+            @PathVariable("codeCustomer") String codeCustomer) {
+        List<ResponseCaseRequestInfoCustomer> responseList = caseRequestService.searchInfoCustomer(codeCustomer);
+        return ResponseEntity.ok(responseList);
+    }
+
     @PostMapping("/saveEvidenceMassiveQuotation/{codeCustomer}")
     public ResponseEntity<ResponseCaseRequestDTO> saveEvidenceMassiveQuotation(
             @PathVariable("codeCustomer") String codeCustomer,
             @RequestParam("title") String title,
             @RequestParam("description") String description,
             @RequestParam("type_case") CaseType typeCase,
+            @RequestParam("lawyer") String lawyer,
             @RequestParam(name = "evidencia", required = false) MultipartFile[] evidencia,
             @RequestParam(name = "cotizacion", required = false) MultipartFile[] cotizacion) {
 
@@ -65,6 +75,7 @@ public class CaseRequestController {
         dto.setTitle(title);
         dto.setDescription(description);
         dto.setType_case(typeCase);
+        dto.setLawyer(lawyer);
 
         ResponseCaseRequestDTO response = caseRequestService.saveEvidenceMassiveQuotation(dto, codeCustomer, evidencia,
                 cotizacion);
