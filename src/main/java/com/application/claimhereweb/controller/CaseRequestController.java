@@ -42,6 +42,15 @@ public class CaseRequestController {
     @Autowired
     private ICaseRequestService caseRequestService;
 
+    @PostMapping("/carryDocument")
+    public ResponseEntity<String> uploadDocuments(
+            @RequestParam("files") MultipartFile[] files,
+            @RequestParam("typeDocument") String typeDocument,
+            @RequestParam("codeCaseRequest") String codeCaseRequest) {
+
+        return caseRequestService.carryDocument(files, typeDocument, codeCaseRequest);
+    }
+
     @GetMapping("/document/download/{code}")
     public ResponseEntity<byte[]> downloadDocument(@PathVariable("code") String code) {
         return caseRequestService.downloadDocument(code);
