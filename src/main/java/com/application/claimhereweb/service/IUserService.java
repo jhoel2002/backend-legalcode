@@ -2,6 +2,9 @@ package com.application.claimhereweb.service;
 
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
+
+import com.application.claimhereweb.model.entity.SimplePageResponse;
 import com.application.claimhereweb.model.entity.enumEntity.RoleName;
 import com.application.claimhereweb.service.dto.ResponseInfoUserDTO;
 import com.application.claimhereweb.service.dto.ResponseUserDTO;
@@ -23,4 +26,8 @@ public interface IUserService {
     ResponseUserDTO save(SaveUserDTO user, RoleName role);
 
     boolean existsByUsername(String email);
+
+    public ResponseUserDTO saveAdmin(SaveUserDTO dto, String codeBuffet);
+
+    public SimplePageResponse<ResponseUserDTO> findAllAdmin(Pageable pageable, String codeBuffet);
 }
