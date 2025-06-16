@@ -4,7 +4,6 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -55,10 +54,13 @@ public class CaseRequestController {
     }
 
     @GetMapping("/infoCustomer/{codeCustomer}")
-    public ResponseEntity<List<ResponseCaseRequestInfoCustomer>> getCaseRequestInfoCustomer(
-            @PathVariable("codeCustomer") String codeCustomer) {
-        List<ResponseCaseRequestInfoCustomer> responseList = caseRequestService.searchInfoCustomer(codeCustomer);
-        return ResponseEntity.ok(responseList);
+    public ResponseEntity<SimplePageResponse<ResponseCaseRequestInfoCustomer>> getCaseRequestInfoCustomer(
+            @PathVariable("codeCustomer") String codeCustomer,
+            Pageable pageable) {
+
+        SimplePageResponse<ResponseCaseRequestInfoCustomer> response = caseRequestService
+                .searchInfoCustomer(codeCustomer, pageable);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/saveEvidenceMassiveQuotation/{codeCustomer}")
