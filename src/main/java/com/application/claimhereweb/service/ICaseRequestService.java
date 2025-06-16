@@ -1,9 +1,6 @@
 package com.application.claimhereweb.service;
 
 import java.sql.Timestamp;
-import java.util.List;
-
-//import java.util.List;
 
 //import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -59,7 +56,8 @@ public interface ICaseRequestService {
 
         public ResponseCaseRequestInfoDTO searchInfo(String codeCaseRequest);
 
-        public List<ResponseCaseRequestInfoCustomer> searchInfoCustomer(String codeCustomer);
+        public SimplePageResponse<ResponseCaseRequestInfoCustomer> searchInfoCustomer(String codeCustomer,
+                        Pageable pageable);
 
         public ResponseEntity<byte[]> downloadDocument(String codeDocument);
 }

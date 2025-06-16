@@ -298,8 +298,9 @@ public class CaseRequestImpl implements ICaseRequestService {
 
         @Override
         @Transactional
-        public List<ResponseCaseRequestInfoCustomer> searchInfoCustomer(String codeCustomer) {
-                logger.info("Obteniendo información detallada de las solicitudes del cliente");
+        public SimplePageResponse<ResponseCaseRequestInfoCustomer> searchInfoCustomer(String codeCustomer,
+                        Pageable pageable) {
+                logger.info("Obteniendo solicitudes del cliente con paginación");
 
                 User user = userRepository.findByCode(codeCustomer)
                                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -309,19 +310,14 @@ public class CaseRequestImpl implements ICaseRequestService {
                                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                                                 "Cliente no asociado"));
 
-                List<CaseRequest> caseRequests = caseRequestRepository.findAllByCustomerId(customer.getId());
+                Page<CaseRequest> caseRequests = caseRequestRepository.findAllByCustomerId(customer.getId(), pageable);
 
-                if (caseRequests.isEmpty()) {
-                        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
-                                        "No hay solicitudes registradas para este cliente");
-                }
-
-                return caseRequests.stream().map(caseRequest -> {
+                Page<ResponseCaseRequestInfoCustomer> dtoPage = caseRequests.map(caseRequest -> {
                         Document quotation = documentRepository.findQuotationByCaseRequestCode(caseRequest.getCode())
                                         .orElse(null);
+
                         List<Document> evidencias = documentRepository
                                         .findEvidenceByCaseRequestCode(caseRequest.getCode());
-
                         List<Map<String, String>> evidenciaList = evidencias.stream()
                                         .map(doc -> Map.of("code", doc.getCode(), "name", doc.getName()))
                                         .toList();
@@ -349,7 +345,9 @@ public class CaseRequestImpl implements ICaseRequestService {
                         }
 
                         return dto;
-                }).toList();
+                });
+
+                return new SimplePageResponse<>(dtoPage);
         }
 
         @Override
