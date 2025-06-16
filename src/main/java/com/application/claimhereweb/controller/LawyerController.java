@@ -4,6 +4,7 @@ import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
@@ -23,9 +24,12 @@ import com.application.claimhereweb.model.entity.SimplePageResponse;
 import com.application.claimhereweb.service.ILawyerService;
 import com.application.claimhereweb.service.dto.ReponseUpdateLawyerDTO;
 import com.application.claimhereweb.service.dto.ResponseLawyerDTO;
+import com.application.claimhereweb.service.dto.ResponseLawyerEnableDTO;
+import com.application.claimhereweb.service.dto.ResponseLawyerSimpleDTO;
 import com.application.claimhereweb.service.dto.ResponseSaveLawyerDTO;
 import com.application.claimhereweb.service.dto.SaveLawyerDTO;
 import com.application.claimhereweb.service.dto.UpdateLawyerDTO;
+import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.validation.Valid;
 
@@ -37,9 +41,44 @@ public class LawyerController {
     @Autowired
     private ILawyerService lawyerService;
 
-    @PostMapping("/save")
-    public ResponseEntity<ResponseSaveLawyerDTO> saveLawyer(@Valid @RequestBody SaveLawyerDTO dto) {
-        ResponseSaveLawyerDTO response = lawyerService.saveLawyer(dto);
+    @GetMapping("/enable")
+    public ResponseEntity<List<ResponseLawyerEnableDTO>> getEnabledLawyers() {
+        List<ResponseLawyerEnableDTO> response = lawyerService.getEnabledLawyers();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/simple/{codeBuffet}")
+    public ResponseEntity<List<ResponseLawyerSimpleDTO>> searchSimpleLawyer(
+            @PathVariable String codeBuffet,
+            @RequestParam String search) {
+
+        List<ResponseLawyerSimpleDTO> result = lawyerService.searchSimpleLawyer(search, codeBuffet);
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/save/{codeBuffet}")
+    public ResponseEntity<ResponseSaveLawyerDTO> saveLawyer(
+            @RequestParam("email") String email,
+            @RequestParam("name") String name,
+            @RequestParam("last_name") String last_name,
+            @RequestParam("password") String password,
+            @RequestParam("phone") String phone,
+            @RequestParam("address") String address,
+            @RequestParam("case_type") String case_type,
+            @RequestParam("description") String description,
+            @RequestParam(name = "foto", required = false) MultipartFile[] foto,
+            @PathVariable String codeBuffet) {
+
+        SaveLawyerDTO dto = new SaveLawyerDTO();
+        dto.setEmail(email);
+        dto.setName(last_name);
+        dto.setLast_name(last_name);
+        dto.setPassword(password);
+        dto.setPhone(phone);
+        dto.setAddress(address);
+        dto.setCase_type(case_type);
+        dto.setDescription(description);
+        ResponseSaveLawyerDTO response = lawyerService.saveLawyer(dto, codeBuffet, foto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

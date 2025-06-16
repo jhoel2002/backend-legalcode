@@ -10,4 +10,5 @@ public class SaveCaseRequestDTO {
     private String title;
     private String description;
     private CaseType type_case;
+    private String lawyer;
 }

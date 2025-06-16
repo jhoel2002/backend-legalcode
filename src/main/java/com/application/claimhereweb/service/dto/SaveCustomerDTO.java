@@ -4,7 +4,6 @@ import lombok.Data;
 
 @Data
 public class SaveCustomerDTO {
-    private String buffet;
     private String email;
     private String name;
     private String password;

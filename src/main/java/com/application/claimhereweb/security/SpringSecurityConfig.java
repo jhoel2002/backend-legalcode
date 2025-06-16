@@ -51,6 +51,7 @@ public class SpringSecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/buffet/save").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/buffet/{code}/logo").permitAll()
                 .requestMatchers(HttpMethod.PATCH, "/api/buffet/enable").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/buffet/**").permitAll()
                 // ENDPOINTS DE CUSTOMER
                 .requestMatchers(HttpMethod.POST, "/api/customer/save").permitAll()
                 .requestMatchers(HttpMethod.PUT, "/api/customer/updateCustomer/{code}").permitAll()

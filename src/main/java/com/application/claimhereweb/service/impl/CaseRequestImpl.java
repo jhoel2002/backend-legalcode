@@ -41,6 +41,7 @@ import com.application.claimhereweb.model.repository.UserRepository;
 import com.application.claimhereweb.service.ICaseRequestService;
 import com.application.claimhereweb.service.dto.AssignLawyerDTO;
 import com.application.claimhereweb.service.dto.ResponseCaseRequestDTO;
+import com.application.claimhereweb.service.dto.ResponseCaseRequestInfoCustomer;
 import com.application.claimhereweb.service.dto.ResponseCaseRequestInfoDTO;
 import com.application.claimhereweb.service.dto.SaveCaseRequestDTO;
 import com.application.claimhereweb.service.dto.UpdateCaseRequestDTO;
@@ -293,6 +294,62 @@ public class CaseRequestImpl implements ICaseRequestService {
                 String correoDestino = email;
                 emailService.sendEmailUsingTemplate("actualizacion_estado_caso", variables, correoDestino);
                 logger.info("Correo enviado a: " + correoDestino);
+        }
+
+        @Override
+        @Transactional
+        public List<ResponseCaseRequestInfoCustomer> searchInfoCustomer(String codeCustomer) {
+                logger.info("Obteniendo información detallada de las solicitudes del cliente");
+
+                User user = userRepository.findByCode(codeCustomer)
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                                "Código no encontrado"));
+
+                Customer customer = customerRepository.findByUserId(user.getId())
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                                "Cliente no asociado"));
+
+                List<CaseRequest> caseRequests = caseRequestRepository.findAllByCustomerId(customer.getId());
+
+                if (caseRequests.isEmpty()) {
+                        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                        "No hay solicitudes registradas para este cliente");
+                }
+
+                return caseRequests.stream().map(caseRequest -> {
+                        Document quotation = documentRepository.findQuotationByCaseRequestCode(caseRequest.getCode())
+                                        .orElse(null);
+                        List<Document> evidencias = documentRepository
+                                        .findEvidenceByCaseRequestCode(caseRequest.getCode());
+
+                        List<Map<String, String>> evidenciaList = evidencias.stream()
+                                        .map(doc -> Map.of("code", doc.getCode(), "name", doc.getName()))
+                                        .toList();
+
+                        ResponseCaseRequestInfoCustomer dto = new ResponseCaseRequestInfoCustomer();
+                        dto.setTitle(caseRequest.getTitle());
+                        dto.setCode(caseRequest.getCode());
+                        dto.setType_case(caseRequest.getType_case().toString());
+                        dto.setStatus_request(caseRequest.getStatus_request().toString());
+
+                        String formattedDate = caseRequest.getCreation().toLocalDateTime()
+                                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                        dto.setCreation(formattedDate);
+
+                        if (caseRequest.getLawyer() != null) {
+                                dto.setLawyerName(caseRequest.getLawyer().getUser().getName() + " " +
+                                                caseRequest.getLawyer().getUser().getLast_name());
+                        }
+
+                        dto.setDescription(caseRequest.getDescription());
+                        dto.setEvidencias(evidenciaList);
+
+                        if (quotation != null) {
+                                dto.setCotizacion(Map.of("code", quotation.getCode(), "name", quotation.getName()));
+                        }
+
+                        return dto;
+                }).toList();
         }
 
         @Override
@@ -556,6 +613,19 @@ public class CaseRequestImpl implements ICaseRequestService {
 
                 logger.info("Validaciones completadas, registrando solicitud de caso: {}", dto.getTitle());
 
+                User userLawyer = userRepository.findByCode(dto.getLawyer())
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                                "Codigo no encontrado"));
+
+                Lawyer lawyer = lawyerRepository.findByUserId(userLawyer.getId())
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                                "Abogado no encontrado"));
+
+                if (!lawyer.getCase_type().equals(dto.getType_case())) {
+                        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                        "El abogado no tiene el mismo tipo de caso legal");
+                }
+
                 User user = userRepository.findByCode(codeCustomer)
                                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                                                 "Cliente no encontrado"));
@@ -572,6 +642,7 @@ public class CaseRequestImpl implements ICaseRequestService {
                 caseRequest.setCode(generateUniqueCode());
                 caseRequest.setCustomer(customer);
                 caseRequest.setBuffet(buffet);
+                caseRequest.setLawyer(lawyer);
 
                 CaseRequest savedCase = caseRequestRepository.save(caseRequest);
 

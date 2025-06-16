@@ -64,10 +64,10 @@ public class CustomerServiceImpl implements ICustomerService {
     @Override
     @Transactional
 
-    public ResponseSaveCustomerDTO saveCustomer(SaveCustomerDTO dto) {
-        logger.info("Verificando buffet con ID {}", dto.getBuffet());
+    public ResponseSaveCustomerDTO saveCustomer(SaveCustomerDTO dto, String codeBuffet) {
+        logger.info("Verificando buffet con ID {}", codeBuffet);
 
-        Buffet buffet = buffetRepository.findByCode(dto.getBuffet())
+        Buffet buffet = buffetRepository.findByCode(codeBuffet)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Buffet no encontrado"));
 
         if (userRepository.existsByEmail(dto.getEmail())) {
