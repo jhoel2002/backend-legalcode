@@ -3,6 +3,7 @@ package com.application.claimhereweb.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.application.claimhereweb.model.entity.SimplePageResponse;
 import com.application.claimhereweb.model.entity.enumEntity.RoleName;
 import com.application.claimhereweb.service.dto.ResponseInfoUserDTO;
 import com.application.claimhereweb.service.dto.ResponseUserDTO;
@@ -29,6 +31,19 @@ import jakarta.validation.Valid;
 public class userController {
     @Autowired
     private UserServiceImpl userService;
+
+    @GetMapping("/findAllAdmin/{codeBuffet}")
+    public SimplePageResponse<ResponseUserDTO> listAll(Pageable pageable,
+            @PathVariable String codeBuffet) {
+        return userService.findAllAdmin(pageable, codeBuffet);
+    }
+
+    @PostMapping("/saveAdmin/{codeBuffet}")
+    public ResponseEntity<ResponseUserDTO> saveAdminUser(@Valid @RequestBody SaveUserDTO dto,
+            @PathVariable String codeBuffet) {
+        ResponseUserDTO response = userService.saveAdmin(dto, codeBuffet);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
 
     @PatchMapping("/enable")
     public ResponseEntity<Void> updateUserEnableStatus(@Valid @RequestBody UpdateUserEnableDTO dto) {
