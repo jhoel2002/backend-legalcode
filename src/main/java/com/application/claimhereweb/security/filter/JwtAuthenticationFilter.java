@@ -70,12 +70,14 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         CustomUserDetails principal = (CustomUserDetails) authResult.getPrincipal();
         String email = principal.getUsername();
         String buffetCode = principal.getBuffetCode();
+        String codeCustomer = principal.getCodeCustomer();
         Collection<? extends GrantedAuthority> roles = principal.getAuthorities();
 
         Claims claims = Jwts.claims()
                 .add("authorities", new ObjectMapper().writeValueAsString(roles))
                 .add("email", email)
                 .add("buffet", buffetCode)
+                .add("codeCustomer", codeCustomer)
                 .build();
 
         String token = Jwts.builder()
@@ -89,9 +91,6 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         response.addHeader(HEADER_AUTHORIZATION, PREFIX_TOKEN + token);
 
         Map<String, String> body = new HashMap<>();
-        body.put("token", token);
-        body.put("username", email);
-        body.put("buffet", buffetCode);
         body.put("message", String.format("Hola %s has iniciado sesion con exito!", email));
 
         response.getWriter().write(new ObjectMapper().writeValueAsString(body));
