@@ -566,6 +566,116 @@ public class CaseRequestImpl implements ICaseRequestService {
 
         @Override
         @Transactional
+        public ResponseEntity<String> carryDocument(MultipartFile[] files, String typeDocument,
+                        String codeCaseRequest) {
+
+                List<String> allowedMimeTypes = List.of(
+                                "image/png", "image/jpeg", "image/jpg",
+                                "application/pdf", "text/plain", "text/csv",
+                                "application/msword",
+                                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                "application/vnd.ms-excel",
+                                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
+                if (files == null || files.length == 0) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No se han enviado archivos.");
+                }
+
+                if ("QUOTATION".equalsIgnoreCase(typeDocument)) {
+                        if (files.length > 1) {
+                                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                                "Solo se permite un archivo de cotización.");
+                        }
+
+                        MultipartFile archivo = files[0];
+                        String mimeType = archivo.getContentType();
+
+                        if (mimeType == null || !allowedMimeTypes.contains(mimeType)) {
+                                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                                "Tipo de archivo no permitido: " + mimeType);
+                        }
+
+                        if (!archivo.isEmpty()) {
+                                carryDocumentType(archivo, codeCaseRequest, typeDocument);
+                        }
+
+                } else if ("RESOLUTION".equalsIgnoreCase(typeDocument)) {
+                        for (MultipartFile file : files) {
+                                if (file == null || file.isEmpty())
+                                        continue;
+
+                                String mimeType = file.getContentType();
+                                if (mimeType == null || !allowedMimeTypes.contains(mimeType)) {
+                                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                                        "Tipo de archivo no permitido: " + mimeType);
+                                }
+
+                                carryDocumentType(file, codeCaseRequest, typeDocument);
+                        }
+
+                } else {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tipo de documento no válido.");
+                }
+
+                return ResponseEntity.ok("Archivo(s) cargado(s) exitosamente.");
+        }
+
+        private void carryDocumentType(MultipartFile file, String caseRequest,
+                        String typeDocument) {
+                try {
+                        String nuevoEstado = "";
+                        CaseRequest infoCaseRequest = caseRequestRepository.findByCode(caseRequest)
+                                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                                        "Caso no encontrado"));
+
+                        Buffet infoBuffet = buffetRepository.findById(infoCaseRequest.getBuffet().getId())
+                                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                                        "Buffet no encontrado"));
+
+                        String timestamp = String.valueOf(System.currentTimeMillis());
+                        String originalName = Optional.ofNullable(file.getOriginalFilename())
+                                        .orElse("archivo_sin_nombre");
+                        String newFileName = timestamp + "_" + originalName;
+
+                        String s3Key = "buffets/" + infoBuffet.getCode() + "/" + typeDocument + "/" + caseRequest + "/"
+                                        + newFileName;
+
+                        ObjectMetadata metadata = new ObjectMetadata();
+                        metadata.setContentLength(file.getSize());
+                        metadata.setContentType(file.getContentType());
+
+                        amazonS3.putObject(new PutObjectRequest(bucketName, s3Key, file.getInputStream(), metadata));
+                        logger.info("Archivo {} cargado correctamente a S3 en {}", typeDocument, s3Key);
+
+                        if ("QUOTATION".equalsIgnoreCase(typeDocument)) {
+                                nuevoEstado = "QUOTED";
+                        }
+
+                        if ("RESOLUTION".equalsIgnoreCase(typeDocument)) {
+                                nuevoEstado = "FINALIZED_REVIEW";
+                        }
+
+                        infoCaseRequest.setStatus_request(CaseStatusRequest.valueOf(nuevoEstado));
+                        caseRequestRepository.save(infoCaseRequest);
+
+                        Document document = new Document();
+                        document.setCode(generateUniqueCodeDocument());
+                        document.setType_document(DocumentType.valueOf(typeDocument));
+                        document.setName(originalName);
+                        document.setUrl(s3Key);
+                        document.setBuffet(infoBuffet);
+                        document.setCase_request(infoCaseRequest);
+
+                        documentRepository.save(document);
+
+                } catch (IOException e) {
+                        logger.error("Error al subir archivo {} a S3: {}", typeDocument, e.getMessage(), e);
+                        throw new RuntimeException("Fallo al subir el archivo " + typeDocument + " a S3", e);
+                }
+        }
+
+        @Override
+        @Transactional
         public ResponseCaseRequestDTO saveEvidenceMassiveQuotation(SaveCaseRequestDTO dto, String codeCustomer,
                         MultipartFile[] evidencia, MultipartFile[] cotizacion) {
 
@@ -641,6 +751,7 @@ public class CaseRequestImpl implements ICaseRequestService {
                 caseRequest.setCustomer(customer);
                 caseRequest.setBuffet(buffet);
                 caseRequest.setLawyer(lawyer);
+                caseRequest.setStatus_request(CaseStatusRequest.APPROVED);
 
                 CaseRequest savedCase = caseRequestRepository.save(caseRequest);
 

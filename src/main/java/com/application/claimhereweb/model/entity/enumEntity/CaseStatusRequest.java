@@ -6,5 +6,6 @@ public enum CaseStatusRequest {
     RECEIVED,
     VALIDATED,
     QUOTED,
-    ASSIGNED
+    ASSIGNED,
+    FINALIZED_REVIEW
 }

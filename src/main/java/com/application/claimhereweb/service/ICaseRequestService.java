@@ -54,6 +54,9 @@ public interface ICaseRequestService {
         public ResponseCaseRequestDTO saveEvidenceMassiveQuotation(SaveCaseRequestDTO dto, String codeCustomer,
                         MultipartFile[] evidencia, MultipartFile[] cotizacion);
 
+        public ResponseEntity<String> carryDocument(MultipartFile[] files, String typeDocument,
+                        String codeCaseRequest);
+
         public ResponseCaseRequestInfoDTO searchInfo(String codeCaseRequest);
 
         public SimplePageResponse<ResponseCaseRequestInfoCustomer> searchInfoCustomer(String codeCustomer,
