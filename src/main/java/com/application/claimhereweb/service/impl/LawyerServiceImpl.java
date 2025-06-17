@@ -176,8 +176,8 @@ public class LawyerServiceImpl implements ILawyerService {
 
     @Override
     @Transactional
-    public List<ResponseLawyerSimpleDTO> searchSimpleLawyer(String search, String codeBuffet) {
-        return lawyerRepository.searchLawyerByUserCodeOrNameOrLastName(search, codeBuffet).stream()
+    public List<ResponseLawyerSimpleDTO> searchSimpleLawyer(String search, String codeBuffet, CaseType typeCase) {
+        return lawyerRepository.searchLawyerByUserCodeOrNameOrLastName(search, codeBuffet, typeCase).stream()
                 .map(c -> {
                     String busqueda = c.getUser().getCode() + " - " + c.getUser().getName() + " "
                             + c.getUser().getLast_name();

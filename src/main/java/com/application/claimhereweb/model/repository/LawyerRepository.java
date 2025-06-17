@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.application.claimhereweb.model.entity.Lawyer;
+import com.application.claimhereweb.model.entity.enumEntity.CaseType;
 
 public interface LawyerRepository extends JpaRepository<Lawyer, Long> {
 
@@ -25,7 +26,8 @@ public interface LawyerRepository extends JpaRepository<Lawyer, Long> {
                 SELECT l FROM Lawyer l
                 JOIN l.user u
                 JOIN u.buffet b
-                WHERE b.code = :codeBuffet
+                WHERE l.case_type = :typeCase
+                  AND b.code = :codeBuffet
                   AND (
                        LOWER(u.code) LIKE LOWER(CONCAT('%', :search, '%'))
                     OR LOWER(u.name) LIKE LOWER(CONCAT('%', :search, '%'))
@@ -34,7 +36,8 @@ public interface LawyerRepository extends JpaRepository<Lawyer, Long> {
             """)
     List<Lawyer> searchLawyerByUserCodeOrNameOrLastName(
             @Param("search") String search,
-            @Param("codeBuffet") String codeBuffet);
+            @Param("codeBuffet") String codeBuffet,
+            @Param("typeCase") CaseType typeCase);
 
     // Buscar abogado por ID de usuario
     Optional<Lawyer> findByUserId(Long userId);

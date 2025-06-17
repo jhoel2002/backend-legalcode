@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.application.claimhereweb.model.entity.SimplePageResponse;
+import com.application.claimhereweb.model.entity.enumEntity.CaseType;
 import com.application.claimhereweb.service.dto.ReponseUpdateLawyerDTO;
 import com.application.claimhereweb.service.dto.ResponseLawyerDTO;
 import com.application.claimhereweb.service.dto.ResponseLawyerEnableDTO;
@@ -39,5 +40,5 @@ public interface ILawyerService {
                         Pageable pageable,
                         String codeBuffet);
 
-        public List<ResponseLawyerSimpleDTO> searchSimpleLawyer(String search, String codeBuffet);
+        public List<ResponseLawyerSimpleDTO> searchSimpleLawyer(String search, String codeBuffet, CaseType typeCase);
 }
