@@ -14,4 +14,5 @@ public class ResponseCaseRequestDTO {
     private String customer;
     private String creation;
     private String buffet;
+    private String lawyer;
 }

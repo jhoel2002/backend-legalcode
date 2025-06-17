@@ -3,6 +3,7 @@ package com.application.claimhereweb.service.impl;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -40,12 +41,14 @@ import com.application.claimhereweb.model.repository.LawyerRepository;
 import com.application.claimhereweb.model.repository.UserRepository;
 import com.application.claimhereweb.service.ICaseRequestService;
 import com.application.claimhereweb.service.dto.AssignLawyerDTO;
+import com.application.claimhereweb.service.dto.ReponseCaseRequestCarryDocument;
 import com.application.claimhereweb.service.dto.ResponseCaseRequestDTO;
 import com.application.claimhereweb.service.dto.ResponseCaseRequestInfoCustomer;
 import com.application.claimhereweb.service.dto.ResponseCaseRequestInfoDTO;
 import com.application.claimhereweb.service.dto.SaveCaseRequestDTO;
 import com.application.claimhereweb.service.dto.UpdateCaseRequestDTO;
 import com.application.claimhereweb.service.dto.UpdateStatusCaseRequestDTO;
+import com.application.claimhereweb.service.dto.UploadedDocumentInfo;
 
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -566,7 +569,7 @@ public class CaseRequestImpl implements ICaseRequestService {
 
         @Override
         @Transactional
-        public ResponseEntity<String> carryDocument(MultipartFile[] files, String typeDocument,
+        public ReponseCaseRequestCarryDocument carryDocument(MultipartFile[] files, String typeDocument,
                         String codeCaseRequest) {
 
                 List<String> allowedMimeTypes = List.of(
@@ -580,6 +583,12 @@ public class CaseRequestImpl implements ICaseRequestService {
                 if (files == null || files.length == 0) {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No se han enviado archivos.");
                 }
+
+                CaseRequest infoCaseRequest = caseRequestRepository.findByCode(codeCaseRequest)
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                                "Caso no encontrado"));
+
+                List<Map<String, String>> documentInfoList = new ArrayList<>();
 
                 if ("QUOTATION".equalsIgnoreCase(typeDocument)) {
                         if (files.length > 1) {
@@ -596,7 +605,10 @@ public class CaseRequestImpl implements ICaseRequestService {
                         }
 
                         if (!archivo.isEmpty()) {
-                                carryDocumentType(archivo, codeCaseRequest, typeDocument);
+                                UploadedDocumentInfo info = carryDocumentType(archivo, codeCaseRequest, typeDocument);
+                                documentInfoList.add(Map.of(
+                                                "code", info.getCode(),
+                                                "name", info.getOriginalName()));
                         }
 
                 } else if ("RESOLUTION".equalsIgnoreCase(typeDocument)) {
@@ -610,18 +622,37 @@ public class CaseRequestImpl implements ICaseRequestService {
                                                         "Tipo de archivo no permitido: " + mimeType);
                                 }
 
-                                carryDocumentType(file, codeCaseRequest, typeDocument);
+                                UploadedDocumentInfo info = carryDocumentType(file, codeCaseRequest, typeDocument);
+                                documentInfoList.add(Map.of(
+                                                "code", info.getCode(),
+                                                "name", info.getOriginalName()));
                         }
 
                 } else {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tipo de documento no válido.");
                 }
 
-                return ResponseEntity.ok("Archivo(s) cargado(s) exitosamente.");
+                Buffet infoBuffet = infoCaseRequest.getBuffet();
+                Customer customer = infoCaseRequest.getCustomer();
+                User user = customer.getUser();
+
+                Map<String, Object> variables = Map.of(
+                                "logo_buffet", infoBuffet.getImg(),
+                                "nombre_usuario", user.getName() + " " + user.getLast_name(),
+                                "codigo_solicitud", infoCaseRequest.getCode(),
+                                "status_solicitud", infoCaseRequest.getStatus_request().name());
+
+                emailService.sendEmailUsingTemplate("actualizacion_estado_caso", variables, user.getEmail());
+                logger.info("Correo enviado a: {}", user.getEmail());
+
+                ReponseCaseRequestCarryDocument response = new ReponseCaseRequestCarryDocument();
+                response.setCode(infoCaseRequest.getCode());
+                response.setDocumentMap(documentInfoList);
+
+                return response;
         }
 
-        private void carryDocumentType(MultipartFile file, String caseRequest,
-                        String typeDocument) {
+        private UploadedDocumentInfo carryDocumentType(MultipartFile file, String caseRequest, String typeDocument) {
                 try {
                         String nuevoEstado = "";
                         CaseRequest infoCaseRequest = caseRequestRepository.findByCode(caseRequest)
@@ -649,9 +680,7 @@ public class CaseRequestImpl implements ICaseRequestService {
 
                         if ("QUOTATION".equalsIgnoreCase(typeDocument)) {
                                 nuevoEstado = "QUOTED";
-                        }
-
-                        if ("RESOLUTION".equalsIgnoreCase(typeDocument)) {
+                        } else if ("RESOLUTION".equalsIgnoreCase(typeDocument)) {
                                 nuevoEstado = "FINALIZED_REVIEW";
                         }
 
@@ -659,7 +688,8 @@ public class CaseRequestImpl implements ICaseRequestService {
                         caseRequestRepository.save(infoCaseRequest);
 
                         Document document = new Document();
-                        document.setCode(generateUniqueCodeDocument());
+                        String documentCode = generateUniqueCodeDocument();
+                        document.setCode(documentCode);
                         document.setType_document(DocumentType.valueOf(typeDocument));
                         document.setName(originalName);
                         document.setUrl(s3Key);
@@ -667,6 +697,8 @@ public class CaseRequestImpl implements ICaseRequestService {
                         document.setCase_request(infoCaseRequest);
 
                         documentRepository.save(document);
+
+                        return new UploadedDocumentInfo(documentCode, originalName);
 
                 } catch (IOException e) {
                         logger.error("Error al subir archivo {} a S3: {}", typeDocument, e.getMessage(), e);
@@ -921,6 +953,13 @@ public class CaseRequestImpl implements ICaseRequestService {
                                 ResponseCaseRequestDTO.class);
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
                 String formattedDate = caseRequest.getCreation().toLocalDateTime().format(formatter);
+                if (caseRequest.getLawyer() != null && caseRequest.getLawyer().getUser() != null) {
+                        reponseCaseRequestDTO.setLawyer(
+                                        caseRequest.getLawyer().getUser().getName() + " " +
+                                                        caseRequest.getLawyer().getUser().getLast_name());
+                } else {
+                        reponseCaseRequestDTO.setLawyer("No asignado");
+                }
                 reponseCaseRequestDTO.setCreation(formattedDate);
                 reponseCaseRequestDTO.setCustomer(caseRequest.getCustomer().getUser().getName() + " "
                                 + caseRequest.getCustomer().getUser().getLast_name());
