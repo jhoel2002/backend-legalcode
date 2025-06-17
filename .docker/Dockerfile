@@ -1,5 +1,5 @@
 # Usa una imagen base con JRE 21 en Alpine
-FROM eclipse-temurin:21-alpine
+FROM eclipse-temurin:21-jre-alpine
 
 # Instala fontconfig y las fuentes Dejavu necesarias
 RUN apk add --no-cache fontconfig ttf-dejavu
@@ -32,13 +32,14 @@ ENV AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
 # Limita heap a 512 MiB y arranca con 256 MiB.
 # MaxRAMPercentage garantiza que, si cambias el límite del contenedor,
 # la JVM nunca use más del 60 % de la RAM visible.
-ENV JAVA_TOOL_OPTIONS="-Xmx512m -Xms256m \
-                       -XX:+UseG1GC \
-                       -XX:MaxRAMPercentage=60 \
-                       -XX:InitialRAMPercentage=30 \
-                       -Dfile.encoding=UTF-8"
+ENV JAVA_TOOL_OPTIONS="\
+  -Xms128m -Xmx256m \
+  -XX:+UseSerialGC \
+  -XX:MaxRAMPercentage=60 \
+  -XX:MinHeapFreeRatio=2 -XX:MaxHeapFreeRatio=5 \
+  -XX:+ExitOnOutOfMemoryError"
 
-# Copia el archivo JAR
+# Copia el archivo JARgti
 COPY ${JAR_FILE} /tmp/app.jar
 
 # Change ownership of the /app directory to the "admin" user

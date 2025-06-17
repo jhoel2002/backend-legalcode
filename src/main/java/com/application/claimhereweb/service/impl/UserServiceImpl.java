@@ -78,7 +78,7 @@ public class UserServiceImpl implements IUserService {
         dto.setEmail(user.getEmail());
         dto.setPhone(user.getPhone());
         dto.setAddress(user.getAddress());
-        dto.setEnable(user.isEnable());
+        dto.setEnabled(user.isEnable());
 
         String roleName = user.getRoles().stream()
                 .findFirst()
