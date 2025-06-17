@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.application.claimhereweb.model.entity.SimplePageResponse;
+import com.application.claimhereweb.model.entity.enumEntity.CaseType;
 import com.application.claimhereweb.service.ILawyerService;
 import com.application.claimhereweb.service.dto.ReponseUpdateLawyerDTO;
 import com.application.claimhereweb.service.dto.ResponseLawyerDTO;
@@ -50,9 +51,10 @@ public class LawyerController {
     @GetMapping("/simple/{codeBuffet}")
     public ResponseEntity<List<ResponseLawyerSimpleDTO>> searchSimpleLawyer(
             @PathVariable String codeBuffet,
-            @RequestParam String search) {
+            @RequestParam String search,
+            @RequestParam CaseType typeCase) {
 
-        List<ResponseLawyerSimpleDTO> result = lawyerService.searchSimpleLawyer(search, codeBuffet);
+        List<ResponseLawyerSimpleDTO> result = lawyerService.searchSimpleLawyer(search, codeBuffet, typeCase);
         return ResponseEntity.ok(result);
     }
 
@@ -71,7 +73,7 @@ public class LawyerController {
 
         SaveLawyerDTO dto = new SaveLawyerDTO();
         dto.setEmail(email);
-        dto.setName(last_name);
+        dto.setName(name);
         dto.setLast_name(last_name);
         dto.setPassword(password);
         dto.setPhone(phone);

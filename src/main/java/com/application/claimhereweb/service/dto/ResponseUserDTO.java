@@ -13,4 +13,5 @@ public class ResponseUserDTO {
     private String role;
     private String address;
     private String creation;
+    private Boolean enable;
 }
