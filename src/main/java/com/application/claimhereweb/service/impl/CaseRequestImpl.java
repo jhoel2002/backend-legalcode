@@ -220,7 +220,7 @@ public class CaseRequestImpl implements ICaseRequestService {
 
         @Override
         @Transactional
-        public void assignLawyerCase(AssignLawyerDTO dto) {
+        public AssignLawyerDTO assignLawyerCase(AssignLawyerDTO dto) {
                 CaseRequest caseRequest = caseRequestRepository.findByCode(dto.getCode())
                                 .orElseThrow(
                                                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -248,6 +248,10 @@ public class CaseRequestImpl implements ICaseRequestService {
                 caseRequest.setLawyer(lawyer);
                 caseRequestRepository.save(caseRequest);
 
+                AssignLawyerDTO dtoAssign = new AssignLawyerDTO();
+                dtoAssign.setCode(infoLawyer.getCode());
+                dtoAssign.setLawyer(infoLawyer.getName() + " " + infoLawyer.getLast_name());
+
                 String logo = buffet.getImg();
                 String nombre_customer = infoCustomer.getName() + " " + infoCustomer.getLast_name();
                 String code_case = caseRequest.getCode();
@@ -265,6 +269,8 @@ public class CaseRequestImpl implements ICaseRequestService {
                 String correoDestino = email;
                 emailService.sendEmailUsingTemplate("asignacion_abogado", variables, correoDestino);
                 logger.info("Correo enviado a: " + correoDestino);
+
+                return dtoAssign;
         }
 
         @Override

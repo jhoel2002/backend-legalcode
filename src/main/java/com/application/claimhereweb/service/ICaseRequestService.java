@@ -28,7 +28,7 @@ public interface ICaseRequestService {
 
         public ResponseCaseRequestDTO updateInfo(UpdateCaseRequestDTO dto, String code);
 
-        public void assignLawyerCase(AssignLawyerDTO dto);
+        public AssignLawyerDTO assignLawyerCase(AssignLawyerDTO dto);
 
         public SimplePageResponse<ResponseCaseRequestDTO> listFilterStatus(String status, Pageable pageable,
                         String codeBuffet);

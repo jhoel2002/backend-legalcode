@@ -146,9 +146,8 @@ public class CaseRequestController {
     }
 
     @PatchMapping("/assignLawyer")
-    public ResponseEntity<Void> assignLawyer(@Valid @RequestBody AssignLawyerDTO dto) {
-        caseRequestService.assignLawyerCase(dto);
-        return ResponseEntity.noContent().build();
+    public AssignLawyerDTO assignLawyer(@Valid @RequestBody AssignLawyerDTO dto) {
+        return caseRequestService.assignLawyerCase(dto);
     }
 
     @GetMapping("/{codeBuffet}")
