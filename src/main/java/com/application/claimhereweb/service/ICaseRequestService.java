@@ -9,6 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.application.claimhereweb.model.entity.SimplePageResponse;
 import com.application.claimhereweb.service.dto.AssignLawyerDTO;
+import com.application.claimhereweb.service.dto.ReponseCaseRequestCarryDocument;
 import com.application.claimhereweb.service.dto.ResponseCaseRequestDTO;
 import com.application.claimhereweb.service.dto.ResponseCaseRequestInfoCustomer;
 import com.application.claimhereweb.service.dto.ResponseCaseRequestInfoDTO;
@@ -54,7 +55,7 @@ public interface ICaseRequestService {
         public ResponseCaseRequestDTO saveEvidenceMassiveQuotation(SaveCaseRequestDTO dto, String codeCustomer,
                         MultipartFile[] evidencia, MultipartFile[] cotizacion);
 
-        public ResponseEntity<String> carryDocument(MultipartFile[] files, String typeDocument,
+        public ReponseCaseRequestCarryDocument carryDocument(MultipartFile[] files, String typeDocument,
                         String codeCaseRequest);
 
         public ResponseCaseRequestInfoDTO searchInfo(String codeCaseRequest);

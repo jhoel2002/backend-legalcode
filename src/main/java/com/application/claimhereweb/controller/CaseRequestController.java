@@ -25,6 +25,7 @@ import com.application.claimhereweb.model.entity.SimplePageResponse;
 import com.application.claimhereweb.model.entity.enumEntity.CaseType;
 import com.application.claimhereweb.service.ICaseRequestService;
 import com.application.claimhereweb.service.dto.AssignLawyerDTO;
+import com.application.claimhereweb.service.dto.ReponseCaseRequestCarryDocument;
 import com.application.claimhereweb.service.dto.ResponseCaseRequestDTO;
 import com.application.claimhereweb.service.dto.ResponseCaseRequestInfoCustomer;
 import com.application.claimhereweb.service.dto.ResponseCaseRequestInfoDTO;
@@ -43,12 +44,14 @@ public class CaseRequestController {
     private ICaseRequestService caseRequestService;
 
     @PostMapping("/carryDocument")
-    public ResponseEntity<String> uploadDocuments(
+    public ResponseEntity<ReponseCaseRequestCarryDocument> uploadDocuments(
             @RequestParam("files") MultipartFile[] files,
             @RequestParam("typeDocument") String typeDocument,
             @RequestParam("codeCaseRequest") String codeCaseRequest) {
 
-        return caseRequestService.carryDocument(files, typeDocument, codeCaseRequest);
+        ReponseCaseRequestCarryDocument response = caseRequestService.carryDocument(files, typeDocument,
+                codeCaseRequest);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/document/download/{code}")
