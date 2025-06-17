@@ -26,6 +26,6 @@ jobs:
             docker pull ghcr.io/jhoel2002/cutomer-back:${{ env.SHA }} # Descarga la última imagen
             docker images
             export TAG=${{ env.SHA }} 
-            docker-compose down -v
-            docker-compose up --detach
+            docker compose down -v
+            docker compose up --detach
             docker system prune -a -f
