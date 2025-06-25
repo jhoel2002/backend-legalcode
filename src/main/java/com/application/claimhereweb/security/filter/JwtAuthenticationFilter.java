@@ -70,14 +70,13 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         CustomUserDetails principal = (CustomUserDetails) authResult.getPrincipal();
         String email = principal.getUsername();
         String buffetCode = principal.getBuffetCode();
-        String codeCustomer = principal.getCodeCustomer();
+        String codeUser = principal.getCodeUser();
         Collection<? extends GrantedAuthority> roles = principal.getAuthorities();
 
         Claims claims = Jwts.claims()
                 .add("authorities", new ObjectMapper().writeValueAsString(roles))
-                .add("email", email)
                 .add("buffet", buffetCode)
-                .add("codeCustomer", codeCustomer)
+                .add("user", codeUser)
                 .build();
 
         String token = Jwts.builder()

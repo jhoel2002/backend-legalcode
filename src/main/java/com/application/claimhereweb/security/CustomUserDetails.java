@@ -8,7 +8,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 public class CustomUserDetails extends org.springframework.security.core.userdetails.User{
     private final String buffetCode;
-    private final String codeCustomer;
+    private final String codeUser;
 
     public CustomUserDetails(com.application.claimhereweb.model.entity.User userEntity) {
 
@@ -23,15 +23,15 @@ public class CustomUserDetails extends org.springframework.security.core.userdet
         );
 
         this.buffetCode = userEntity.getBuffet().getCode();
-        this.codeCustomer = userEntity.getCode();
+        this.codeUser = userEntity.getCode();
     }
 
     public String getBuffetCode() {
         return buffetCode;
     }
 
-    public String getCodeCustomer() {
-        return codeCustomer;
+    public String getCodeUser() {
+        return codeUser;
     }
 
     private static Collection<? extends GrantedAuthority> mapRoles(
